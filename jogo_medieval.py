@@ -12,6 +12,7 @@ st.markdown("""
     .gold-count { color: #ffd700; font-size: 24px; font-weight: bold; }
     .stButton>button { background-color: #111; color: #4af626; border: 1px solid #4af626; border-radius: 0px; font-family: 'VT323', monospace; margin-top: 5px; }
     .stButton>button:hover { background-color: #4af626; color: #000; }
+    .item-stat { color: #ffcc00; font-weight: bold; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -64,7 +65,6 @@ def sell_item(item_idx):
 
 # --- UI PRINCIPAL ---
 
-# TELA INICIAL COM GUIA
 if not st.session_state.game_active:
     st.title("🏰 DARK CASTLE: ASCENSÃO")
     with st.expander("📖 GUIA DO AVENTUREIRO", expanded=True):
@@ -91,13 +91,22 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-    # INVENTÁRIO INTERATIVO
+    # INVENTÁRIO INTERATIVO COM STATUS
     with st.expander("🎒 BOLSA DE ITENS (ABRIR)", expanded=False):
         if not st.session_state.inventory:
             st.write("Sua bolsa está vazia.")
         for idx, item in enumerate(st.session_state.inventory):
-            col_n, col_a = st.columns([2, 2])
-            col_n.write(f"• {item['name']}")
+            col_n, col_a = st.columns([2.5, 1.5])
+            
+            # Formatação do nome com o status
+            stat_info = ""
+            if item['type'] == "weapon":
+                stat_info = f" <span class='item-stat'>(+{item['atk']} ATK)</span>"
+            elif item['type'] == "armor":
+                stat_info = f" <span class='item-stat'>(+{item['def']} DEF)</span>"
+            
+            col_n.markdown(f"• {item['name']}{stat_info}", unsafe_allow_html=True)
+            
             with col_a:
                 ca, cb = st.columns(2)
                 if item['type'] in ["weapon", "armor"]:
@@ -117,7 +126,7 @@ else:
         st.title("🛒 MERCADOR")
         t_buy, t_sell = st.tabs(["Comprar", "Vender"])
         with t_buy:
-            if st.button("🗡️ ESPADA LONGA (120G)"):
+            if st.button("🗡️ ESPADA LONGA - 30 ATK (120G)"):
                 if st.session_state.gold >= 120:
                     st.session_state.gold -= 120
                     st.session_state.inventory.append({"name": "Espada Longa", "atk": 30, "type": "weapon"})
@@ -138,10 +147,9 @@ else:
     elif st.session_state.enemy:
         enemy = st.session_state.enemy
         st.subheader(f"👹 COMBATE: {enemy['name']}")
-        # BARRA DE VIDA DO MONSTRO
         e_hp_p = max(0, enemy['hp'])
         st.warning(f"HP DO INIMIGO: {e_hp_p}")
-        st.progress(min(1.0, e_hp_p / 100)) # Mostra barra visual para o monstro
+        st.progress(min(1.0, e_hp_p / 100) if enemy['name'] != "LORDE DAS SOMBRAS" else min(1.0, e_hp_p / 500))
         
         c1, c2 = st.columns(2)
         if c1.button("⚔️ ATACAR"):
@@ -174,7 +182,7 @@ else:
                 item = random.choice([
                     {"name": "Poção de Vida", "type": "consumable"},
                     {"name": "Escudo de Madeira", "def": 6, "type": "armor"},
-                    {"name": "Lança Curta", "atk": 20, "type": "weapon"}
+                    {"name": "Lança Curta", "atk": 22, "type": "weapon"}
                 ])
                 st.session_state.inventory.append(item)
                 add_log(f"🎁 Achou: {item['name']}!")
@@ -187,9 +195,15 @@ else:
         c1, c2 = st.columns(2)
         if c1.button("👣 EXPLORAR"):
             roll = random.random()
-            if roll < 0.5: st.session_state.enemy = {"name": "Esqueleto", "hp": 60}
-            elif roll < 0.8: st.session_state.chest_found = True
-            else: add_log("👣 O corredor está silencioso...")
+            if st.session_state.floor == 5 and st.session_state.progress_floor >= 2:
+                st.session_state.enemy = {"name": "LORDE DAS SOMBRAS", "hp": 500, "atk": 30}
+            elif roll < 0.5: 
+                st.session_state.enemy = {"name": "Esqueleto", "hp": 60 + (st.session_state.floor * 10)}
+            elif roll < 0.8: 
+                st.session_state.chest_found = True
+            else: 
+                add_log("👣 O corredor está silencioso...")
+                st.session_state.progress_floor += 0.5 # Corredores vazios dão meio progresso
             st.rerun()
         if c2.button("🛒 MERCADOR"): st.session_state.in_shop = True; st.rerun()
 
