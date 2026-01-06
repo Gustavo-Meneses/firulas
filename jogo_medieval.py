@@ -23,7 +23,7 @@ if 'game_active' not in st.session_state:
         'weapon': {"name": "Adaga Velha", "atk": 8, "type": "weapon"},
         'armor': {"name": "Trapos", "def": 2, "type": "armor"},
         'floor': 1, 'progress_floor': 0, 'in_shop': False, 'chest_found': False,
-        'inventory': [] # Lista de dicionários de itens
+        'inventory': []
     })
 
 def add_log(msg):
@@ -40,129 +40,141 @@ def start_game(role):
         st.session_state.mana = 120
         st.session_state.weapon = {"name": "Cajado Rúnico", "atk": 10, "type": "weapon"}
 
-# --- GERENCIAMENTO DE ITENS ---
+# --- GERENCIAMENTO DE ITENS E VENDAS ---
 def handle_item(item_idx, action):
     item = st.session_state.inventory[item_idx]
-    
     if action == "descartar":
         st.session_state.inventory.pop(item_idx)
-        add_log(f"🗑️ Você jogou fora: {item['name']}")
-    
-    elif action == "usar":
-        if "Poção" in item['name']:
-            st.session_state.hp = min(st.session_state.max_hp, st.session_state.hp + 40)
-            st.session_state.inventory.pop(item_idx)
-            add_log("🧪 Você bebeu a poção e recuperou 40 HP!")
-    
+        add_log(f"🗑️ Descartou: {item['name']}")
+    elif action == "usar" and "Poção" in item['name']:
+        st.session_state.hp = min(st.session_state.max_hp, st.session_state.hp + 40)
+        st.session_state.inventory.pop(item_idx)
+        add_log("🧪 Bebeu poção (+40 HP)!")
     elif action == "equipar":
-        if item['type'] == "weapon":
-            old_weapon = st.session_state.weapon
-            st.session_state.weapon = item
-            st.session_state.inventory[item_idx] = old_weapon
-            add_log(f"⚔️ Equipou {item['name']}. {old_weapon['name']} voltou para a bolsa.")
-        elif item['type'] == "armor":
-            old_armor = st.session_state.armor
-            st.session_state.armor = item
-            st.session_state.inventory[item_idx] = old_armor
-            add_log(f"🛡️ Equipou {item['name']}. {old_armor['name']} voltou para a bolsa.")
+        target = 'weapon' if item['type'] == "weapon" else 'armor'
+        old_item = st.session_state[target]
+        st.session_state[target] = item
+        st.session_state.inventory[item_idx] = old_item
+        add_log(f"⚔️ Equipou {item['name']}!")
 
 def sell_item(item_idx):
     item = st.session_state.inventory.pop(item_idx)
-    price = 20 # Preço fixo de revenda para simplificar
-    st.session_state.gold += price
-    add_log(f"💰 Vendeu {item['name']} por {price}G")
+    st.session_state.gold += 20
+    add_log(f"💰 Vendeu {item['name']} por 20G")
 
 # --- UI PRINCIPAL ---
+
+# TELA INICIAL COM GUIA
 if not st.session_state.game_active:
-    st.title("🏰 DARK CASTLE: RPG MANAGER")
+    st.title("🏰 DARK CASTLE: ASCENSÃO")
+    with st.expander("📖 GUIA DO AVENTUREIRO", expanded=True):
+        st.write("""
+        - **Objetivo:** Chegue ao 5º andar e derrote o Lorde das Sombras.
+        - **Combate:** Use ataques físicos ou magia (consome mana).
+        - **Bolsa:** Clique em '🎒 BOLSA' para equipar armas ou tomar poções.
+        - **Mercado:** Venda itens achados em baús para comprar equipamentos melhores.
+        """)
+    st.subheader("Escolha sua classe:")
     c1, c2 = st.columns(2)
     if c1.button("🛡️ GUERREIRO"): start_game("Guerreiro"); st.rerun()
     if c2.button("🔮 MAGO"): start_game("Mago"); st.rerun()
+
 else:
-    # HUD
+    # HUD DE VIDA E OURO
     hp_p = (st.session_state.hp / st.session_state.max_hp) * 100
     st.markdown(f"""
     <div class="char-hud">
-        ❤️ HP: {st.session_state.hp}/{st.session_state.max_hp} | 💰 <span class="gold-count">{st.session_state.gold}G</span>
-        <div style="background: #333; width: 100%; height: 10px; border: 1px solid #4af626; margin-top:5px;">
+        ❤️ VIDA: {st.session_state.hp}/{st.session_state.max_hp} | 💰 <span class="gold-count">{st.session_state.gold}G</span>
+        <div style="background: #333; width: 100%; height: 12px; border: 1px solid #4af626; margin-top:5px;">
             <div style="background: #4af626; width: {hp_p}%; height: 100%;"></div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # INVENTÁRIO INTERATIVO
-    with st.expander("🎒 BOLSA DE ITENS", expanded=False):
+    with st.expander("🎒 BOLSA DE ITENS (ABRIR)", expanded=False):
         if not st.session_state.inventory:
-            st.write("Vazia...")
+            st.write("Sua bolsa está vazia.")
         for idx, item in enumerate(st.session_state.inventory):
-            col_name, col_act = st.columns([2, 2])
-            col_name.write(f"• **{item['name']}**")
-            
-            with col_act:
-                c1, c2 = st.columns(2)
+            col_n, col_a = st.columns([2, 2])
+            col_n.write(f"• {item['name']}")
+            with col_a:
+                ca, cb = st.columns(2)
                 if item['type'] in ["weapon", "armor"]:
-                    if c1.button("Equipar", key=f"eq_{idx}"): handle_item(idx, "equipar"); st.rerun()
+                    if ca.button("Equipar", key=f"eq_{idx}"): handle_item(idx, "equipar"); st.rerun()
                 elif "Poção" in item['name']:
-                    if c1.button("Beber", key=f"use_{idx}"): handle_item(idx, "usar"); st.rerun()
-                
-                if c2.button("Lixo", key=f"del_{idx}"): handle_item(idx, "descartar"); st.rerun()
+                    if ca.button("Beber", key=f"us_{idx}"): handle_item(idx, "usar"); st.rerun()
+                if cb.button("Lixo", key=f"del_{idx}"): handle_item(idx, "descartar"); st.rerun()
 
     st.divider()
 
-    # ESTADOS DE JOGO
+    # LOGICA DE ESTADOS
     if st.session_state.hp <= 0:
-        st.error("💀 FIM DA LINHA")
+        st.error("💀 VOCÊ MORREU")
         if st.button("RECOMEÇAR"): st.session_state.clear(); st.rerun()
 
     elif st.session_state.in_shop:
         st.title("🛒 MERCADOR")
-        tab_buy, tab_sell = st.tabs(["Comprar", "Vender"])
-        
-        with tab_buy:
-            c1, c2 = st.columns(2)
-            if c1.button("🗡️ ESPADA (100G)"):
-                if st.session_state.gold >= 100:
-                    st.session_state.gold -= 100
-                    st.session_state.inventory.append({"name": "Espada", "atk": 25, "type": "weapon"})
-                    add_log("🛒 Espada comprada!")
-                else: add_log("❌ Sem ouro!")
-            if c2.button("🧪 POÇÃO (40G)"):
+        t_buy, t_sell = st.tabs(["Comprar", "Vender"])
+        with t_buy:
+            if st.button("🗡️ ESPADA LONGA (120G)"):
+                if st.session_state.gold >= 120:
+                    st.session_state.gold -= 120
+                    st.session_state.inventory.append({"name": "Espada Longa", "atk": 30, "type": "weapon"})
+                    add_log("🛒 Comprou Espada Longa!")
+                else: add_log("❌ Ouro insuficiente!")
+            if st.button("🧪 POÇÃO DE VIDA (40G)"):
                 if st.session_state.gold >= 40:
                     st.session_state.gold -= 40
                     st.session_state.inventory.append({"name": "Poção de Vida", "type": "consumable"})
-                    add_log("🛒 Poção comprada!")
-                else: add_log("❌ Sem ouro!")
-        
-        with tab_sell:
-            if not st.session_state.inventory: st.write("Nada para vender.")
+                    add_log("🛒 Comprou Poção!")
+                else: add_log("❌ Ouro insuficiente!")
+        with t_sell:
             for idx, item in enumerate(st.session_state.inventory):
-                if st.button(f"Vender {item['name']} (20G)", key=f"sell_{idx}"):
+                if st.button(f"Vender {item['name']} (+20G)", key=f"sl_{idx}"):
                     sell_item(idx); st.rerun()
-        
-        if st.button("🔙 SAIR"): st.session_state.in_shop = False; st.rerun()
+        if st.button("🔙 VOLTAR"): st.session_state.in_shop = False; st.rerun()
 
     elif st.session_state.enemy:
-        st.subheader(f"👹 COMBATE: {st.session_state.enemy['name']}")
-        if st.button("⚔️ ATACAR"):
+        enemy = st.session_state.enemy
+        st.subheader(f"👹 COMBATE: {enemy['name']}")
+        # BARRA DE VIDA DO MONSTRO
+        e_hp_p = max(0, enemy['hp'])
+        st.warning(f"HP DO INIMIGO: {e_hp_p}")
+        st.progress(min(1.0, e_hp_p / 100)) # Mostra barra visual para o monstro
+        
+        c1, c2 = st.columns(2)
+        if c1.button("⚔️ ATACAR"):
             dmg = st.session_state.weapon['atk'] + random.randint(5, 10)
-            st.session_state.enemy['hp'] -= dmg
-            add_log(f"💥 Causou {dmg} de dano!")
-            if st.session_state.enemy['hp'] <= 0:
-                st.session_state.gold += 30; st.session_state.enemy = None; add_log("🏆 Vitória!")
+            enemy['hp'] -= dmg
+            add_log(f"💥 Você causou {dmg} de dano!")
+            if enemy['hp'] <= 0:
+                st.session_state.gold += 40; st.session_state.enemy = None; add_log("🏆 Inimigo derrotado!")
             else:
-                edmg = max(1, 15 - st.session_state.armor['def'])
-                st.session_state.hp -= edmg; add_log(f"🩸 Recebeu {edmg} de dano!")
+                edmg = max(2, 18 - st.session_state.armor['def'])
+                st.session_state.hp -= edmg; add_log(f"🩸 Inimigo revidou: {edmg}")
+            st.rerun()
+        if c2.button("🔥 MAGIA (25 MP)"):
+            if st.session_state.mana >= 25:
+                st.session_state.mana -= 25
+                dmg = 50 + (st.session_state.level * 5)
+                enemy['hp'] -= dmg
+                add_log(f"🔮 Magia causou {dmg}!")
+                if enemy['hp'] <= 0:
+                    st.session_state.gold += 40; st.session_state.enemy = None; add_log("🏆 Vitória Arcana!")
+                else:
+                    st.session_state.hp -= 10; add_log("🩸 Sofreu contra-ataque!")
+            else: add_log("❌ Sem Mana!")
             st.rerun()
 
     elif st.session_state.chest_found:
-        st.title("🎁 BAÚ!")
+        st.title("🎁 BAÚ ENCONTRADO!")
         if st.button("🔓 ABRIR"):
-            roll = random.random()
-            if roll < 0.7:
+            if random.random() < 0.7:
                 item = random.choice([
                     {"name": "Poção de Vida", "type": "consumable"},
-                    {"name": "Escudo Velho", "def": 5, "type": "armor"},
-                    {"name": "Punhal Rápido", "atk": 18, "type": "weapon"}
+                    {"name": "Escudo de Madeira", "def": 6, "type": "armor"},
+                    {"name": "Lança Curta", "atk": 20, "type": "weapon"}
                 ])
                 st.session_state.inventory.append(item)
                 add_log(f"🎁 Achou: {item['name']}!")
@@ -175,11 +187,12 @@ else:
         c1, c2 = st.columns(2)
         if c1.button("👣 EXPLORAR"):
             roll = random.random()
-            if roll < 0.5: st.session_state.enemy = {"name": "Esqueleto", "hp": 50}
+            if roll < 0.5: st.session_state.enemy = {"name": "Esqueleto", "hp": 60}
             elif roll < 0.8: st.session_state.chest_found = True
-            else: add_log("👣 Nada aqui...")
+            else: add_log("👣 O corredor está silencioso...")
             st.rerun()
         if c2.button("🛒 MERCADOR"): st.session_state.in_shop = True; st.rerun()
 
+    # HISTÓRICO
     st.divider()
     for line in st.session_state.log[:3]: st.write(f"`{line}`")
