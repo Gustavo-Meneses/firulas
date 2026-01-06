@@ -1,264 +1,179 @@
 import streamlit as st
 import random
-import time
 
 # --- CONFIGURAÇÃO DA VIBE (CSS & ESTÉTICA) ---
-st.set_page_config(page_title="Dark Castle 8-Bit", page_icon="🏰", layout="centered")
+st.set_page_config(page_title="Dark Castle: Loot & Glory", page_icon="⚔️", layout="centered")
 
-# O segredo do Vibe Coding: CSS injetado para criar atmosfera
 st.markdown("""
 <style>
-    /* Importando fonte retro simulada */
     @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
-
-    /* Fundo e Fonte Geral */
-    .stApp {
-        background-color: #050505;
-        font-family: 'VT323', monospace;
-        font-size: 22px;
-    }
-    
-    /* Títulos Neon */
-    h1, h2, h3 {
-        color: #4af626 !important;
-        text-shadow: 0 0 10px #228d10;
-        font-family: 'VT323', monospace;
-        letter-spacing: 2px;
-    }
-
-    /* Botões Retro */
+    .stApp { background-color: #050505; font-family: 'VT323', monospace; color: #4af626; font-size: 20px; }
+    h1, h2, h3 { color: #4af626 !important; text-shadow: 0 0 10px #228d10; }
     .stButton>button {
-        background-color: #111;
-        color: #4af626;
-        border: 2px solid #4af626;
-        border-radius: 0px;
-        font-family: 'VT323', monospace;
-        font-size: 20px;
-        transition: all 0.3s;
-        text-transform: uppercase;
+        background-color: #111; color: #4af626; border: 2px solid #4af626;
+        border-radius: 0px; font-family: 'VT323', monospace; width: 100%;
     }
-    .stButton>button:hover {
-        background-color: #4af626;
-        color: #000;
-        box-shadow: 0 0 15px #4af626;
-    }
-
-    /* Efeito de Scanline (Monitor CRT) */
+    .stButton>button:hover { background-color: #4af626; color: #000; box-shadow: 0 0 15px #4af626; }
     .scanlines {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 100vw;
-        height: 100vh;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-        background-size: 100% 4px, 6px 100%;
-        pointer-events: none;
-        z-index: 9999;
-    }
-
-    /* Containers de Status */
-    div[data-testid="stMetricValue"] {
-        font-family: 'VT323', monospace;
-        color: #ffcc00;
+        position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+        background-size: 100% 4px; pointer-events: none; z-index: 9999;
     }
 </style>
 <div class="scanlines"></div>
 """, unsafe_allow_html=True)
 
-# --- BIBLIOTECA DE ASSETS (ASCII ART) ---
-ASCII_ARTS = {
-    "title": """
-    ▓█████▄  ▄▄▄       ██▀███   ██ ▄█▀
-    ▒██▀ ██▌▒████▄    ▓██ ▒ ██▒ ██▄█▒ 
-    ░██   █▌▒██  ▀█▄  ▓██ ░▄█ ▒▓███▄░ 
-    ░▓█▄   ▌░██▄▄▄▄██ ▒██▀▀█▄  ▓██ █▄ 
-    ░▒████▓  ▓█   ▓██▒░██▓ ▒██▒▒██▒ █▄
-     ▒▒▓  ▒  ▒▒   ▓▒█░░ ▒▓ ░▒▓░▒ ▒▒ ▓▒
-     ░ ▒  ▒   ▒   ▒▒ ░  ░▒ ░ ▒░░ ░▒ ▒░
-     ░ ░  ░   ░   ▒     ░░   ░ ░ ░░ ░ 
-       ░          ░  ░   ░     ░  ░   
-    """,
-    "warrior": "🛡️ GUERREIRO",
-    "mage": "🔮 MAGO",
-    "enemy_goblin": """
-      (    )
-     ((((  ))))
-    (  '  '   )
-     (   ^   )
-      (  -  )
-    """,
-    "enemy_dragon": """
-         / \  //\
-   |\___/|      /   \//  \\
-   /0  0  \__  /    //  | \ \    
-  /     /  \/_/    //   |  \  \  
-  @_^_@'/   \/_   //    |   \   \ 
-  //_^_/     \/_ //     |    \    \
- ( //) |        \///      |     \     \
-    """
+# --- ASSETS (ASCII) ---
+ASCII_DRAGON = """
+      _,   _
+     /  `./ )
+    |  _   / 
+    |_| |_|
+"""
+ASCII_GOBLIN = " (0_0) <(GRRR!)"
+
+# --- DATABASE DE ITENS ---
+LOOT_TABLE = {
+    "weapon": [
+        {"name": "Adaga de Ferro", "atk": 5, "rarity": "Comum"},
+        {"name": "Espada de Aço", "atk": 12, "rarity": "Raro"},
+        {"name": "Machado Sangrento", "atk": 25, "rarity": "Épico"}
+    ],
+    "armor": [
+        {"name": "Trapos Velhos", "def": 2, "rarity": "Comum"},
+        {"name": "Cota de Malha", "def": 8, "rarity": "Raro"},
+        {"name": "Armadura de Placas", "def": 20, "rarity": "Épico"}
+    ]
 }
 
-# --- LÓGICA DO JOGO (ENGINE) ---
+# --- ENGINE DO JOGO ---
 
-def init_game():
-    if 'game_active' not in st.session_state:
-        st.session_state.game_active = False
-    if 'hero_class' not in st.session_state:
-        st.session_state.hero_class = None
-    if 'xp' not in st.session_state:
-        st.session_state.xp = 0
-    if 'level' not in st.session_state:
-        st.session_state.level = 1
+if 'game_active' not in st.session_state:
+    st.session_state.update({
+        'game_active': False, 'hero_class': None, 'level': 1, 'xp': 0,
+        'hp': 100, 'max_hp': 100, 'mana': 50, 'gold': 0, 'log': [],
+        'enemy': None, 'weapon': {"name": "Punhos", "atk": 2},
+        'armor': {"name": "Roupas Comuns", "def": 0}
+    })
 
-def start_adventure(classe):
+def add_log(msg):
+    st.session_state.log.insert(0, msg)
+
+def start_game(role):
     st.session_state.game_active = True
-    st.session_state.hero_class = classe
-    st.session_state.hp = 120 if classe == "warrior" else 80
-    st.session_state.max_hp = st.session_state.hp
-    st.session_state.mana = 20 if classe == "warrior" else 100
-    st.session_state.gold = 0
-    st.session_state.log = ["⚔️ A portão do castelo se abre com um rangido..."]
-    st.session_state.enemy = None
+    st.session_state.hero_class = role
+    if role == "Guerreiro":
+        st.session_state.hp = st.session_state.max_hp = 120
+        st.session_state.weapon = {"name": "Espada Curta", "atk": 8}
+    else:
+        st.session_state.hp = st.session_state.max_hp = 80
+        st.session_state.mana = 100
+        st.session_state.weapon = {"name": "Cajado de Madeira", "atk": 4}
 
-def render_sidebar():
-    with st.sidebar:
-        st.title("📜 PERFIL")
-        if st.session_state.game_active:
-            role = ASCII_ARTS[st.session_state.hero_class]
-            st.write(f"**Classe:** {role}")
-            st.write(f"**Nível:** {st.session_state.level}")
-            
-            # Barras de Progresso
-            hp_percent = st.session_state.hp / st.session_state.max_hp
-            st.write(f"❤️ VIDA: {st.session_state.hp}")
-            st.progress(max(0.0, min(1.0, hp_percent)))
-            
-            st.write(f"💙 MANA: {st.session_state.mana}")
-            st.progress(min(1.0, st.session_state.mana / 100))
-            
-            st.write(f"⭐ XP: {st.session_state.xp}")
-            
-            st.markdown("---")
-            st.write("🎒 **Inventário:**")
-            st.write(f"💰 Ouro: {st.session_state.gold}")
-            if st.button("🔴 Sair do Jogo"):
-                st.session_state.clear()
-                st.rerun()
+def roll_loot():
+    if random.random() < 0.4: # 40% chance de cair loot
+        tipo = random.choice(["weapon", "armor"])
+        item = random.choice(LOOT_TABLE[tipo])
+        add_log(f"💎 O inimigo deixou cair: {item['name']} ({item['rarity']})!")
+        
+        # Comparar e equipar automaticamente se for melhor (Lógica de Vibe Coding)
+        if tipo == "weapon" and item['atk'] > st.session_state.weapon['atk']:
+            st.session_state.weapon = item
+            add_log("⚔️ Você equipou a arma nova!")
+        elif tipo == "armor" and item.get('def', 0) > st.session_state.armor.get('def', 0):
+            st.session_state.armor = item
+            add_log("🛡️ Você equipou a armadura nova!")
 
 def combat_turn(action):
     enemy = st.session_state.enemy
-    hero_class = st.session_state.hero_class
-    
-    # Turno do Jogador
-    dmg = 0
-    log_msg = ""
-    
+    # Dano do Jogador
     if action == "attack":
-        base_dmg = random.randint(10, 20)
-        bonus = 5 if hero_class == "warrior" else 0
-        dmg = base_dmg + bonus
-        log_msg = f"⚔️ Você atacou com sua arma causando {dmg} de dano!"
-    
-    elif action == "magic":
-        cost = 20
-        if st.session_state.mana >= cost:
-            st.session_state.mana -= cost
-            base_dmg = random.randint(25, 40)
-            bonus = 10 if hero_class == "mage" else 0
-            dmg = base_dmg + bonus
-            log_msg = f"🔥 Você lançou uma bola de fogo causando {dmg} de dano!"
+        dmg = st.session_state.weapon['atk'] + random.randint(5, 10)
+        msg = f"💥 Você usou {st.session_state.weapon['name']} e causou {dmg} de dano!"
+    else: # Magia
+        if st.session_state.mana >= 20:
+            st.session_state.mana -= 20
+            dmg = 35 + (st.session_state.level * 5)
+            msg = f"🔮 Magia Arcana causou {dmg} de dano!"
         else:
-            log_msg = "💧 Mana insuficiente! Você tropeçou tentando conjurar."
-            
-    # Aplicar dano
-    enemy['hp'] -= dmg
-    st.session_state.log.insert(0, log_msg)
+            dmg = 0
+            msg = "❌ Sem mana! Você falhou no feitiço."
     
-    # Checar vitória
+    enemy['hp'] -= dmg
+    add_log(msg)
+
     if enemy['hp'] <= 0:
-        xp_gain = random.randint(20, 50)
-        gold_gain = random.randint(10, 30)
-        st.session_state.xp += xp_gain
+        gold_gain = random.randint(15, 40)
+        xp_gain = 30
         st.session_state.gold += gold_gain
+        st.session_state.xp += xp_gain
+        add_log(f"🏆 Vitória! +{gold_gain}G e +{xp_gain}XP")
+        roll_loot()
         st.session_state.enemy = None
-        st.session_state.log.insert(0, f"💀 Inimigo derrotado! +{xp_gain} XP | +{gold_gain} Ouro")
-        
-        # Level Up simplificado
-        if st.session_state.xp > 100 * st.session_state.level:
+        if st.session_state.xp >= st.session_state.level * 100:
             st.session_state.level += 1
             st.session_state.max_hp += 20
             st.session_state.hp = st.session_state.max_hp
-            st.balloons()
-            st.session_state.log.insert(0, f"🆙 LEVEL UP! Agora você é nível {st.session_state.level}!")
-            
+            add_log(f"🆙 SUBIU DE NÍVEL: {st.session_state.level}!")
     else:
-        # Turno do Inimigo
-        enemy_dmg = random.randint(5, 15)
-        st.session_state.hp -= enemy_dmg
-        st.session_state.log.insert(0, f"🩸 O inimigo contra-atacou! -{enemy_dmg} HP")
-        if st.session_state.hp <= 0:
-            st.error("💀 VOCÊ MORREU...")
-            if st.button("Renascer"):
-                st.session_state.clear()
-                st.rerun()
-            st.stop()
+        # Dano do Inimigo (Reduzido pela Defesa)
+        raw_enemy_dmg = random.randint(10, 20)
+        mitigation = st.session_state.armor.get('def', 0)
+        final_enemy_dmg = max(2, raw_enemy_dmg - mitigation)
+        st.session_state.hp -= final_enemy_dmg
+        add_log(f"🩸 O {enemy['name']} causou {final_enemy_dmg} de dano (Defesa bloqueou {mitigation}).")
 
-# --- MAIN LOOP ---
-init_game()
-render_sidebar()
+# --- INTERFACE ---
 
 if not st.session_state.game_active:
-    st.markdown(f"<pre style='color: #4af626; line-height: 10px;'>{ASCII_ARTS['title']}</pre>", unsafe_allow_html=True)
-    st.write("Escolha seu destino, aventureiro:")
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("### 🛡️ GUERREIRO")
-        st.write("Força bruta e alta resistência.")
-        if st.button("ESCOLHER GUERREIRO"):
-            start_adventure("warrior")
-            st.rerun()
-            
-    with col2:
-        st.markdown("### 🔮 MAGO")
-        st.write("Poder arcano destrutivo e mana.")
-        if st.button("ESCOLHER MAGO"):
-            start_adventure("mage")
-            st.rerun()
-
+    st.title("🏰 DARK CASTLE 8-BIT")
+    st.write("Selecione sua classe para iniciar o Vibe Coding...")
+    c1, c2 = st.columns(2)
+    if c1.button("🛡️ GUERREIRO"): start_game("Guerreiro") ; st.rerun()
+    if c2.button("🔮 MAGO"): start_game("Mago") ; st.rerun()
 else:
-    # Tela de Jogo
-    st.title("🏰 O Corredor Escuro")
-    
-    # Se não tem inimigo, oferecer exploração
-    if not st.session_state.enemy:
-        st.info("O caminho está livre, mas o silêncio é assustador...")
+    # Sidebar Status
+    with st.sidebar:
+        st.header(f"Level {st.session_state.level} {st.session_state.hero_class}")
+        st.metric("❤️ Vida", f"{st.session_state.hp}/{st.session_state.max_hp}")
+        st.metric("💧 Mana", st.session_state.mana)
+        st.metric("💰 Ouro", st.session_state.gold)
+        st.write("---")
+        st.write(f"⚔️ **Arma:** {st.session_state.weapon['name']} (+{st.session_state.weapon.get('atk')} ATK)")
+        st.write(f"🛡️ **Corpo:** {st.session_state.armor['name']} (+{st.session_state.armor.get('def')} DEF)")
+        if st.button("♻️ Reiniciar"): st.session_state.clear() ; st.rerun()
+
+    # Área Principal
+    if st.session_state.enemy:
+        enemy = st.session_state.enemy
+        st.subheader(f"COMBATE: {enemy['name']}")
+        st.code(enemy['art'])
+        st.progress(max(0, enemy['hp'])/100)
         
-        col_act1, col_act2 = st.columns(2)
-        with col_act1:
-            if st.button("👣 AVANÇAR NO ESCURO", use_container_width=True):
-                dice = random.randint(1, 10)
-                if dice <= 6: # 60% chance de encontro
-                    monsters = [
-                        {'name': 'Goblin Saqueador', 'hp': 40, 'art': ASCII_ARTS['enemy_goblin']},
-                        {'name': 'Dragão das Sombras', 'hp': 100, 'art': ASCII_ARTS['enemy_dragon']}
-                    ]
-                    st.session_state.enemy = random.choice(monsters)
-                    st.session_state.log.insert(0, f"⚠️ Um {st.session_state.enemy['name']} surgiu das sombras!")
-                    st.rerun()
-                else:
-                    st.session_state.log.insert(0, "🍂 Nada além de poeira e ossos antigos.")
-                    st.rerun()
+        col1, col2 = st.columns(2)
+        if col1.button("⚔️ Atacar"): combat_turn("attack") ; st.rerun()
+        if col2.button("🔥 Magia"): combat_turn("magic") ; st.rerun()
+    else:
+        st.subheader("Você explora os corredores úmidos...")
+        if st.button("👣 Avançar"):
+            if random.random() < 0.6:
+                st.session_state.enemy = random.choice([
+                    {"name": "Goblin", "hp": 50, "art": ASCII_GOBLIN},
+                    {"name": "Dragão Pequeno", "hp": 100, "art": ASCII_DRAGON}
+                ])
+                add_log("❗ Um inimigo bloqueia seu caminho!")
+            else:
+                add_log("👣 O corredor parece seguro... por enquanto.")
+            st.rerun()
         
-        with col_act2:
-            if st.button("🏕️ DESCANSAR (Recuperar HP)", use_container_width=True):
-                st.session_state.hp = min(st.session_state.max_hp, st.session_state.hp + 20)
-                st.session_state.mana = min(100, st.session_state.mana + 20)
-                st.session_state.log.insert(0, "💤 Você descansou e recuperou forças.")
+        if st.button("🍺 Beber Poção (30G)"):
+            if st.session_state.gold >= 30:
+                st.session_state.gold -= 30
+                st.session_state.hp = min(st.session_state.max_hp, st.session_state.hp + 40)
+                add_log("🧪 Você recuperou 40 de Vida.")
                 st.rerun()
 
-    # Se tem inimigo, modo de combate
-    else:
-        enemy = st.session_state.enemy
-        st.markdown(f"### 👹 {enemy['name']} (HP: {enemy['hp']})")
-        st.code(enemy['art']) # Exibe a ASCII art do monstro
+    st.write("---")
+    st.write("📜 **HISTÓRICO:**")
+    for line in st.session_state.log[:5]:
+        st.write(f"`{line}`")
