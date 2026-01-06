@@ -10,15 +10,16 @@ st.markdown("""
     @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
     .stApp { background-color: #050505; font-family: 'VT323', monospace; color: #4af626; font-size: 20px; }
     
-    /* Animações */
+    /* Animação: Morte do Monstro */
     @keyframes monsterDeath {
         0% { transform: scale(1); opacity: 1; }
         100% { transform: scale(0) rotate(90deg); opacity: 0; }
     }
     .monster-die { animation: monsterDeath 1.5s forwards; text-align: center; font-size: 40px; color: red; }
 
+    /* Animação: Explosão do Player */
     @keyframes explode {
-        0% { transform: scale(1); }
+        0% { transform: scale(1); opacity: 1; }
         50% { transform: scale(1.5); color: orange; }
         100% { transform: scale(0); opacity: 0; }
     }
@@ -26,10 +27,11 @@ st.markdown("""
 
     .hero-panel { background: rgba(0, 255, 0, 0.05); border: 2px solid #4af626; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
     .stat-tag { color: #ffcc00; font-weight: bold; }
+    .boss-sliced { color: #ff0000; font-weight: bold; letter-spacing: 5px; transform: skewX(-20deg); }
 </style>
 """, unsafe_allow_html=True)
 
-# --- INICIALIZAÇÃO SEGURA ---
+# --- INICIALIZAÇÃO SEGURA DO ESTADO ---
 if 'game_active' not in st.session_state:
     st.session_state.update({
         'game_active': False, 'hero_class': "Viajante", 'level': 1, 'hp': 100, 'max_hp': 100, 
@@ -60,52 +62,44 @@ def start_game(role):
         st.session_state.armor = {"name": "Manto de Seda", "def": 3, "type": "armor"}
     st.rerun()
 
-# --- LÓGICA DO BOSS ADAPTATIVO ---
-def spawn_boss():
-    power = st.session_state.weapon.get('atk', 0) + st.session_state.armor.get('def', 0)
-    if power < 30: hp, atk, diff = 300, 20, "50%"
-    elif power < 60: hp, atk, diff = 500, 35, "70%"
-    else: hp, atk, diff = 800, 50, "90%"
-    st.session_state.enemy = {"name": "🔥 LORDE DAS SOMBRAS", "hp": hp, "max_hp": hp, "atk": atk, "difficulty": diff}
-
-# --- TELA INICIAL (COM INFORMAÇÕES GERAIS) ---
+# --- TELA INICIAL ---
 if not st.session_state.game_active:
     st.title("🏰 DARK CASTLE: ASCENSÃO")
     
+    # Restauração das Informações Gerais
     with st.expander("📖 GUIA DO AVENTUREIRO (COMO JOGAR)", expanded=True):
         st.markdown("""
-        - **Objetivo:** Explore os andares até o 5º nível para derrotar o Lorde das Sombras.
-        - **Andares:** Cada andar exige um número de abates para avançar (Andar 1: 3 | Andar 2: 4 | Andar 3: 5 | Andar 4: 2).
-        - **Bolsa & Itens:** Use o inventário para equipar armas/armaduras encontradas ou tomar poções.
-        - **O Chefe:** O Lorde das Sombras adapta sua força baseada nos seus itens atuais.
-        - **Morte:** Se seu HP chegar a 0, você explode e perde o progresso!
+        - **Objetivo:** Explore os andares até o 5º nível para derrotar o Lorde.
+        - **Progresso:** Derrote o número de monstros exigido para subir de andar.
+        - **Combate:** No Andar 5, o Lorde adapta sua força (50%, 70% ou 90%) ao seu poder.
+        - **Bolsa:** Equipe itens novos para aumentar seu ATK e DEF.
         """)
     
-    st.subheader("Escolha sua classe para iniciar:")
-    col1, col2 = st.columns(2)
-    if col1.button("🛡️ GUERREIRO", use_container_width=True): start_game("Guerreiro")
-    if col2.button("🔮 MAGO", use_container_width=True): start_game("Mago")
+    st.subheader("Escolha sua classe para começar:")
+    c1, c2 = st.columns(2)
+    if c1.button("🛡️ GUERREIRO", use_container_width=True): start_game("Guerreiro")
+    if c2.button("🔮 MAGO", use_container_width=True): start_game("Mago")
 
-# --- TELAS DE FIM DE JOGO / ANIMAÇÕES ---
+# --- TELAS DE FIM DE JOGO ---
 elif st.session_state.game_state == 'player_dead':
     st.markdown("<div class='player-explode'>💥 EXPLODINDO 💥</div>", unsafe_allow_html=True)
-    if st.session_state.enemy and "LORDE" in st.session_state.enemy['name']:
-        st.markdown("<h2 style='color:red; text-align:center;'>HA HA HA! TÃO PREVISÍVEL...</h2>", unsafe_allow_html=True)
+    if st.session_state.enemy and "LORDE" in st.session_state.enemy.get('name', ''):
+        st.markdown("<h2 style='color:red; text-align:center;'>HA HA HA! FRACO!</h2>", unsafe_allow_html=True)
     st.error("VOCÊ MORREU!")
     if st.button("Tentar Novamente"): st.session_state.clear(); st.rerun()
 
 elif st.session_state.game_state == 'player_win':
     st.balloons()
-    st.success("O LORDE FOI FATIADO! VOCÊ VENCEU!")
-    st.markdown("<h1 style='text-align:center;'>⚔️ HERÓI LENDÁRIO ⚔️</h1>", unsafe_allow_html=True)
+    st.success("O LORDE FOI FATIADO! VOCÊ VENCEU O JOGO!")
+    st.markdown("<h2 class='boss-sliced' style='text-align:center;'>// L // O // R // D // E //</h2>", unsafe_allow_html=True)
     if st.button("Jogar Novamente"): st.session_state.clear(); st.rerun()
 
-# --- LOOP DE JOGO ATIVO ---
+# --- INTERFACE DE JOGO ATIVO ---
 else:
-    # HUD do Personagem (Proteção contra HP negativo na barra)
+    # HUD do Herói com trava de segurança para st.progress
     avatar = "🛡️" if st.session_state.hero_class == "Guerreiro" else "🔮"
-    current_hp = max(0, st.session_state.hp)
-    hp_ratio = max(0.0, min(1.0, current_hp / st.session_state.max_hp))
+    # Cálculo seguro da vida (entre 0.0 e 1.0) para evitar o erro da imagem 86b0ec
+    safe_hp_ratio = max(0.0, min(1.0, st.session_state.hp / st.session_state.max_hp))
     
     st.markdown(f"""
     <div class="hero-panel">
@@ -113,36 +107,37 @@ else:
             <div style="font-size: 50px;">{avatar}</div>
             <div style="flex-grow: 1;">
                 <div><b>{st.session_state.hero_class.upper()}</b> | ANDAR {st.session_state.floor}</div>
-                <div style="font-size: 14px;">Abates no andar: {st.session_state.kills_on_floor} / {FLOOR_GOALS.get(st.session_state.floor, 1)}</div>
-                <div>💰 {st.session_state.gold}G | ❤️ {current_hp}/{st.session_state.max_hp}</div>
+                <div>HP: {max(0, st.session_state.hp)}/{st.session_state.max_hp} | 💰 {st.session_state.gold}G</div>
             </div>
         </div>
-        <div style="margin-top: 10px; border-top: 1px solid #4af626; padding-top: 5px; font-size: 15px;">
-            ⚔️ {st.session_state.weapon.get('name', 'Nenhum')} <span class='stat-tag'>(+{st.session_state.weapon.get('atk', 0)} ATK)</span> | 
-            🛡️ {st.session_state.armor.get('name', 'Nenhum')} <span class='stat-tag'>(+{st.session_state.armor.get('def', 0)} DEF)</span>
+        <div style="margin-top: 10px; border-top: 1px solid #4af626; padding-top: 5px; font-size: 14px;">
+            ⚔️ {st.session_state.weapon.get('name', '???')} (+{st.session_state.weapon.get('atk', 0)} ATK) | 
+            🛡️ {st.session_state.armor.get('name', '???')} (+{st.session_state.armor.get('def', 0)} DEF)
         </div>
     </div>
     """, unsafe_allow_html=True)
-    st.progress(hp_ratio)
+    st.progress(safe_hp_ratio)
 
     # Lógica de Combate
     if st.session_state.enemy:
         enemy = st.session_state.enemy
-        st.subheader(f"👹 {enemy['name']}")
+        st.subheader(f"👹 {enemy.get('name', 'Inimigo')}")
+        st.write(f"Vida Inimiga: {max(0, enemy.get('hp', 0))}")
         
         c1, c2 = st.columns(2)
         if c1.button("⚔️ ATACAR"):
-            dmg = st.session_state.weapon.get('atk', 5) + random.randint(5, 12)
+            dmg = st.session_state.weapon.get('atk', 10) + random.randint(5, 12)
             enemy['hp'] -= dmg
-            add_log(f"💥 Você causou {dmg} de dano!")
+            add_log(f"💥 Causou {dmg} de dano!")
             
             if enemy['hp'] <= 0:
-                if "LORDE" in enemy['name']: st.session_state.game_state = 'player_win'
+                if "LORDE" in enemy.get('name', ''):
+                    st.session_state.game_state = 'player_win'
                 else:
-                    add_log("🏆 Monstro derrotado!")
                     st.session_state.gold += 50
                     st.session_state.kills_on_floor += 1
                     st.session_state.enemy = None
+                    add_log("🏆 Vitória!")
                     if st.session_state.kills_on_floor >= FLOOR_GOALS.get(st.session_state.floor, 3):
                         st.session_state.floor += 1
                         st.session_state.kills_on_floor = 0
@@ -150,29 +145,44 @@ else:
             else:
                 edmg = max(2, enemy.get('atk', 15) - st.session_state.armor.get('def', 0))
                 st.session_state.hp -= edmg
-                if st.session_state.hp <= 0: st.session_state.game_state = 'player_dead'
+                if st.session_state.hp <= 0:
+                    st.session_state.game_state = 'player_dead'
                 st.rerun()
 
-    # Lógica de Exploração
+    # Exploração
     elif st.session_state.chest_found:
-        st.info("🎁 Você encontrou um baú!")
+        st.title("🎁 BAÚ ENCONTRADO!")
         if st.button("Abrir Baú"):
-            item = random.choice([{"name": "Espada Curta", "atk": 20, "type": "weapon"}, {"name": "Escudo Leve", "def": 10, "type": "armor"}, {"name": "Poção", "type": "potion"}])
+            # Loot melhor no andar 4
+            if st.session_state.floor == 4:
+                item = {"name": "Espada de Plasma", "atk": 50, "type": "weapon"}
+            else:
+                item = {"name": "Poção", "type": "potion"}
             st.session_state.inventory.append(item)
-            add_log(f"🎁 Encontrou: {item['name']}!")
+            add_log(f"🎁 Recebeu {item['name']}!")
             st.session_state.chest_found = False
             st.rerun()
-
+    
     else:
-        if st.button("👣 EXPLORAR PRÓXIMA SALA"):
-            if st.session_state.floor == 5: spawn_boss()
+        st.title(f"🏰 SALA DE EXPLORAÇÃO")
+        st.write(f"Derrote {FLOOR_GOALS.get(st.session_state.floor, 3) - st.session_state.kills_on_floor} inimigos para subir.")
+        if st.button("👣 PROCURAR MONSTRO"):
+            if st.session_state.floor == 5:
+                # Spawn do Boss Adaptativo
+                power = st.session_state.weapon.get('atk', 0) + st.session_state.armor.get('def', 0)
+                if power < 30: hp, atk = 300, 20
+                elif power < 60: hp, atk = 500, 35
+                else: hp, atk = 800, 50
+                st.session_state.enemy = {"name": "🔥 LORDE DAS SOMBRAS", "hp": hp, "atk": atk}
             else:
                 roll = random.random()
-                if roll < 0.6: st.session_state.enemy = {"name": f"Orc do Andar {st.session_state.floor}", "hp": 50 + st.session_state.floor*10, "atk": 10 + st.session_state.floor*3}
-                elif roll < 0.85: st.session_state.chest_found = True
-                else: add_log("👣 Corredor vazio...")
+                if roll < 0.7: 
+                    st.session_state.enemy = {"name": "Monstro", "hp": 60 + st.session_state.floor*10, "atk": 15 + st.session_state.floor*2}
+                else: 
+                    st.session_state.chest_found = True
             st.rerun()
 
-    # Log de mensagens
     st.write("---")
-    for line in st.session_state.log[:3]: st.
+    # Histórico de log fixado
+    for line in st.session_state.log[:3]:
+        st.write(f"`{line}`")
