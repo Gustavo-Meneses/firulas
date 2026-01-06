@@ -17,7 +17,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- INICIALIZAÇÃO DO ESTADO DO JOGO ---
+# --- INICIALIZAÇÃO SEGURA DO ESTADO ---
 if 'game_active' not in st.session_state:
     st.session_state.update({
         'game_active': False, 'hero_class': "Viajante", 'hp': 100, 'max_hp': 100, 
@@ -25,7 +25,7 @@ if 'game_active' not in st.session_state:
         'weapon': {"name": "Punhal Velho", "atk": 8, "type": "weapon", "value": 10, "rarity": "comum"},
         'armor': {"name": "Trapos", "def": 2, "type": "armor", "value": 5},
         'floor': 1, 'kills': 0, 'inventory': [], 'state': 'playing',
-        'market_stock': [] # Controle de reposição de itens
+        'market_stock': [] 
     })
 
 FLOOR_GOALS = {1: 3, 2: 4, 3: 5, 4: 2, 5: 1}
@@ -49,22 +49,22 @@ def start_game(role):
 # --- TELA INICIAL ---
 if not st.session_state.game_active:
     st.title("🏰 DARK CASTLE: ASCENSÃO")
+    with st.expander("📖 GUIA E ATUALIZAÇÕES", expanded=True):
+        st.write("- **Berserker**: +90% ATK quando HP < 30%.")
+        st.write("- **Assassino**: 30% chance de esquiva e chance de causar Stun.")
+        st.write("- **Mago**: Magia causa +70% dano com armas RARAS.")
+        st.write("- **Exploração**: Chance de baús aumentada em +20%.")
+    
     st.subheader("Selecione sua Classe:")
     c1, c2, c3, c4 = st.columns(4)
     if c1.button("🛡️ GUERREIRO"): start_game("Guerreiro")
     if c2.button("🔮 MAGO"): start_game("Mago")
     if c3.button("🪓 BERSERKER"): start_game("Berserker")
     if c4.button("🗡️ ASSASSINO"): start_game("Assassino")
-    
-    with st.expander("📝 NOTAS DA ATUALIZAÇÃO"):
-        st.write("- **Berserker:** +90% ATK quando HP < 30%.")
-        st.write("- **Assassino:** 30% de chance de desviar e causa Stun (inimigo não ataca).")
-        st.write("- **Mago:** Magia causa +70% dano se usar item Raro.")
-        st.write("- **Exploração:** +20% de chance de achar Baús.")
 
 # --- LÓGICA DE JOGO ATIVO ---
 elif st.session_state.state == 'playing':
-    # HUD
+    # HUD Corrigido (Evita erros das imagens 1 e 7)
     safe_hp_ratio = max(0.0, min(1.0, st.session_state.hp / st.session_state.max_hp))
     is_berserk = st.session_state.hero_class == "Berserker" and (st.session_state.hp / st.session_state.max_hp) < 0.3
     
@@ -92,22 +92,19 @@ elif st.session_state.state == 'playing':
             st.progress(max(0.0, min(1.0, en['hp'] / en['max_hp'])))
             
             c1, c2 = st.columns(2)
-            
-            # Botão de Ataque Padrão
             if c1.button("⚔️ ATACAR"):
                 base_atk = st.session_state.weapon['atk']
-                if is_berserk: base_atk *= 1.9 # +90% de bônus
+                if is_berserk: base_atk *= 1.9 
                 
                 dmg = int(base_atk + random.randint(5, 15))
                 stunned = False
                 
-                # Especial Assassino: Stun (25% chance)
                 if st.session_state.hero_class == "Assassino" and random.random() < 0.25:
                     stunned = True
                     add_log("⚡ STUN! O inimigo está atordoado!")
 
                 en['hp'] -= dmg
-                add_log(f"Você causou {dmg} de dano!")
+                add_log(f"Causou {dmg} de dano!")
                 
                 if en['hp'] <= 0:
                     st.session_state.gold += 40
@@ -117,9 +114,7 @@ elif st.session_state.state == 'playing':
                         st.session_state.floor += 1; st.session_state.kills = 0
                     st.rerun()
                 else:
-                    # Defesa / Esquiva
-                    if stunned:
-                        add_log("Inimigo atordoado não atacou.")
+                    if stunned: add_log("Inimigo atordoado não atacou.")
                     elif st.session_state.hero_class == "Assassino" and random.random() < 0.30:
                         add_log("💨 ESQUIVA! Você desviou do ataque!")
                     else:
@@ -128,28 +123,19 @@ elif st.session_state.state == 'playing':
                         if st.session_state.hp <= 0: st.session_state.state = 'player_dead'
                     st.rerun()
 
-            # Botão Especial do Mago
-            if st.session_state.hero_class == "Mago":
-                if c2.button("🔥 ATAQUE DE MAGIA"):
-                    mag_dmg = st.session_state.weapon['atk'] + 20
-                    if st.session_state.weapon.get('rarity') == 'raro':
-                        mag_dmg *= 1.7 # +70% dano raro
-                        add_log("✨ MAGIA POTENCIALIZADA!")
-                    
-                    en['hp'] -= int(mag_dmg)
-                    add_log(f"Magia causou {int(mag_dmg)} de dano!")
-                    # Inimigo contra-ataca
-                    edmg = max(5, en['atk'] - 2)
-                    st.session_state.hp -= edmg
-                    if en['hp'] <= 0: 
-                        st.session_state.enemy = None; st.session_state.kills += 1
-                    st.rerun()
-
+            if st.session_state.hero_class == "Mago" and c2.button("🔥 MAGIA"):
+                mag_dmg = st.session_state.weapon['atk'] + 20
+                if st.session_state.weapon.get('rarity') == 'raro':
+                    mag_dmg *= 1.7
+                    add_log("✨ MAGIA POTENCIALIZADA!")
+                en['hp'] -= int(mag_dmg)
+                add_log(f"Magia causou {int(mag_dmg)} de dano!")
+                st.session_state.hp -= max(5, en['atk'] - 5)
+                if en['hp'] <= 0: st.session_state.enemy = None; st.session_state.kills += 1
+                st.rerun()
         else:
-            if st.button("👣 EXPLORAR ANDAR"):
-                # Ajuste de Probabilidade: Baú (+20% em cima da base de 30% = 50% chance)
-                if random.random() < 0.50: 
-                    item_puro = {"name": "Tesouro", "value": 50, "type": "gold"}
+            if st.button("👣 EXPLORAR"):
+                if random.random() < 0.50: # Chance de baú +20%
                     st.session_state.gold += 50
                     add_log("🎁 Baú encontrado! +50G")
                 else:
@@ -157,53 +143,50 @@ elif st.session_state.state == 'playing':
                 st.rerun()
 
     with tab_i:
+        st.subheader("Mochila")
+        if not st.session_state.inventory: st.write("Vazia.")
         for idx, item in enumerate(st.session_state.inventory):
-            c1, c2 = st.columns([3, 1])
-            c1.write(f"{item['name']} (+{item.get('atk', 0)} ATK)")
-            if c2.button("Equipar", key=f"inv_{idx}"):
+            col1, col2, col3 = st.columns([2, 1, 1])
+            col1.write(f"{item['name']} (+{item.get('atk', 0)} ATK)")
+            if col2.button("Equipar", key=f"e_{idx}"):
                 old = st.session_state['weapon']
                 st.session_state['weapon'] = item
                 st.session_state.inventory[idx] = old
                 st.rerun()
+            if col3.button("Vender", key=f"v_{idx}"):
+                st.session_state.gold += item.get('value', 20)
+                st.session_state.inventory.pop(idx)
+                st.rerun()
 
     with tab_s:
-        # Lógica de Mercado com Reposição e Itens Raros (2%)
-        if not st.session_state.market_stock:
-            # Gerar novos itens
+        # Reposição de Estoque e Itens Raros (Corrigindo imagem 7)
+        if not st.session_state.get('market_stock'):
             pool = [
-                {"name": "Espada Pesada", "atk": 40, "price": 150, "type": "weapon", "rarity": "comum"},
-                {"name": "Dagas de Vidro", "atk": 38, "price": 140, "type": "weapon", "rarity": "comum"},
-                {"name": "Grimório Negro", "atk": 35, "price": 160, "type": "weapon", "rarity": "comum"}
+                {"name": "Espada de Aço", "atk": 30, "price": 100, "type": "weapon", "rarity": "comum", "value": 50},
+                {"name": "Cajado Arcano", "atk": 28, "price": 110, "type": "weapon", "rarity": "comum", "value": 55}
             ]
-            # Chance de 2% de item RARO aparecer
-            if random.random() < 0.02:
-                pool.append({"name": "EXCALIBUR (Lendária)", "atk": 120, "price": 400, "type": "weapon", "rarity": "raro"})
-            if random.random() < 0.02:
-                pool.append({"name": "CAJADO DE MERLIN", "atk": 100, "price": 400, "type": "weapon", "rarity": "raro"})
-            
-            st.session_state.market_stock = random.sample(pool, 2)
+            if random.random() < 0.02: # 2% Chance Rara
+                pool.append({"name": "LÂMINA INFINITA", "atk": 150, "price": 500, "type": "weapon", "rarity": "raro", "value": 250})
+            st.session_state.market_stock = random.sample(pool, min(len(pool), 2))
 
-        st.subheader("Itens Disponíveis")
         for idx, it in enumerate(st.session_state.market_stock):
-            label = f"⭐ {it['name']}" if it['rarity'] == 'raro' else it['name']
-            if st.button(f"{label} - {it['price']}G", key=f"shop_{idx}"):
+            rarity_prefix = "⭐ " if it['rarity'] == 'raro' else ""
+            if st.button(f"Comprar {rarity_prefix}{it['name']} ({it['price']}G)", key=f"shop_{idx}"):
                 if st.session_state.gold >= it['price']:
                     st.session_state.gold -= it['price']
                     st.session_state.inventory.append(it)
-                    st.session_state.market_stock.pop(idx) # Remove após compra
-                    add_log(f"Comprou {it['name']}!")
+                    st.session_state.market_stock.pop(idx)
                     st.rerun()
-                else: st.error("Ouro insuficiente!")
         
-        if st.button("🔄 Atualizar Estoque (20G)"):
+        if st.button("🔄 Renovar Estoque (20G)"):
             if st.session_state.gold >= 20:
                 st.session_state.gold -= 20
                 st.session_state.market_stock = []
                 st.rerun()
 
     st.divider()
-    for line in st.session_state.log[:3]: st.write(f"`{line}`")
+    for line in st.session_state.log[:3]: st.write(f"`{line}`") # Corrigindo imagem 3
 
 elif st.session_state.state == 'player_dead':
-    st.error("VOCÊ MORREU!")
+    st.error("VOCÊ CAIU EM COMBATE!")
     if st.button("RECOMEÇAR"): st.session_state.clear(); st.rerun()
