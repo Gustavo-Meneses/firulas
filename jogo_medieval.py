@@ -1,8 +1,8 @@
 import streamlit as st
 import random
 
-# --- CONFIGURAÇÃO DA VIBE ---
-st.set_page_config(page_title="Dark Castle: Market & Glory", page_icon="⚔️", layout="centered")
+# --- ESTÉTICA RETRO ---
+st.set_page_config(page_title="Dark Castle: Loot & Mimics", page_icon="🏰", layout="centered")
 
 st.markdown("""
 <style>
@@ -14,47 +14,17 @@ st.markdown("""
         border-radius: 0px; font-family: 'VT323', monospace; width: 100%;
     }
     .stButton>button:hover { background-color: #4af626; color: #000; box-shadow: 0 0 15px #4af626; }
-    .scanlines {
-        position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
-        background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-        background-size: 100% 4px; pointer-events: none; z-index: 9999;
-    }
 </style>
-<div class="scanlines"></div>
 """, unsafe_allow_html=True)
 
-# --- DATABASE DE ITENS ---
-LOOT_TABLE = {
-    "weapon": [
-        {"name": "Adaga de Ferro", "atk": 5, "rarity": "Comum"},
-        {"name": "Espada de Aço", "atk": 12, "rarity": "Raro"},
-        {"name": "Machado Sangrento", "atk": 25, "rarity": "Épico"}
-    ],
-    "armor": [
-        {"name": "Trapos Velhos", "def": 2, "rarity": "Comum"},
-        {"name": "Cota de Malha", "def": 8, "rarity": "Raro"},
-        {"name": "Armadura de Placas", "def": 20, "rarity": "Épico"}
-    ]
-}
-
-# --- ENGINE DO JOGO (CORREÇÃO DE ATRIBUTOS) ---
-
-# Inicialização segura de todos os estados
+# --- INICIALIZAÇÃO SEGURA ---
 if 'game_active' not in st.session_state:
     st.session_state.update({
-        'game_active': False,
-        'hero_class': "Viajante",
-        'level': 1,
-        'xp': 0,
-        'hp': 100,
-        'max_hp': 100,
-        'mana': 50,
-        'gold': 0,
-        'log': ["Bem-vindo ao Dark Castle..."],
-        'enemy': None,
-        'weapon': {"name": "Punhos", "atk": 2}, # Garantindo que exista desde o início
-        'armor': {"name": "Roupas Comuns", "def": 0},
-        'in_shop': False
+        'game_active': False, 'hero_class': "Viajante", 'level': 1, 'xp': 0,
+        'hp': 100, 'max_hp': 100, 'mana': 50, 'gold': 0, 'log': ["O castelo te espera..."],
+        'enemy': None, 'weapon': {"name": "Punhos", "atk": 5},
+        'armor': {"name": "Roupas", "def": 0}, 'floor': 1, 'progress_floor': 0, 
+        'in_shop': False, 'chest_found': False
     })
 
 def add_log(msg):
@@ -64,112 +34,142 @@ def start_game(role):
     st.session_state.game_active = True
     st.session_state.hero_class = role
     if role == "Guerreiro":
-        st.session_state.hp = st.session_state.max_hp = 120
-        st.session_state.weapon = {"name": "Espada Curta", "atk": 8}
+        st.session_state.hp = st.session_state.max_hp = 150
+        st.session_state.weapon = {"name": "Machado Inicial", "atk": 12}
     else:
-        st.session_state.hp = st.session_state.max_hp = 80
-        st.session_state.mana = 100
-        st.session_state.weapon = {"name": "Cajado de Madeira", "atk": 4}
+        st.session_state.hp = st.session_state.max_hp = 90
+        st.session_state.mana = 120
+        st.session_state.weapon = {"name": "Cajado de Aprendiz", "atk": 8}
 
+# --- LÓGICA DE BAÚS ---
+def open_chest():
+    st.session_state.chest_found = False
+    luck = random.random()
+    if luck < 0.6: # Loot
+        gold_gain = random.randint(20, 60)
+        st.session_state.gold += gold_gain
+        add_log(f"🎁 O baú continha {gold_gain}G e uma erva medicinal! (+10 HP)")
+        st.session_state.hp = min(st.session_state.max_hp, st.session_state.hp + 10)
+    elif luck < 0.9: # Monstro (Trap)
+        st.session_state.enemy = {"name": "Mimic (Baú Monstro)", "hp": 40, "atk": 15}
+        add_log("⚠️ O BAÚ ERA UM MIMIC! PREPARE-SE!")
+    else: # Vazio
+        add_log("🕳️ O baú estava vazio e cheio de teias de aranha.")
+
+# --- LÓGICA DE COMBATE ---
 def combat_turn(action):
     enemy = st.session_state.enemy
-    if action == "attack":
-        dmg = st.session_state.weapon.get('atk', 2) + random.randint(5, 10)
-        msg = f"💥 Dano causado: {dmg}"
-    else:
-        if st.session_state.mana >= 20:
-            st.session_state.mana -= 20
-            dmg = 35 + (st.session_state.level * 5)
-            msg = f"🔮 Magia Arcana: {dmg}"
-        else:
-            dmg = 0
-            msg = "❌ Sem Mana!"
+    dmg = st.session_state.weapon['atk'] + random.randint(5, 15) if action == "attack" else (45 + st.session_state.level * 5 if st.session_state.mana >= 25 else 0)
+    if action == "magic": st.session_state.mana -= 25 if st.session_state.mana >= 25 else 0
     
     enemy['hp'] -= dmg
-    add_log(msg)
+    add_log(f"⚔️ Você causou {dmg} de dano!")
 
     if enemy['hp'] <= 0:
-        gold_gain = random.randint(15, 40)
-        st.session_state.gold += gold_gain
-        st.session_state.xp += 30
-        add_log(f"🏆 Inimigo derrotado! +{gold_gain}G")
+        gold_win = random.randint(20, 50) * st.session_state.floor
+        st.session_state.gold += gold_win
+        st.session_state.xp += 40
+        add_log(f"🏆 Vitória! +{gold_win}G. Progresso: +1")
+        st.session_state.progress_floor += 1
         st.session_state.enemy = None
+        
+        if st.session_state.progress_floor >= 3:
+            st.session_state.floor += 1
+            st.session_state.progress_floor = 0
+            add_log(f"🔼 ANDAR {st.session_state.floor} ALCANÇADO!")
     else:
-        # Contra-ataque
         mitigation = st.session_state.armor.get('def', 0)
-        dmg_taken = max(2, random.randint(10, 20) - mitigation)
-        st.session_state.hp -= dmg_taken
-        add_log(f"🩸 Dano recebido: {dmg_taken}")
+        enemy_dmg = max(2, (enemy['atk'] + random.randint(0, 5)) - mitigation)
+        st.session_state.hp -= enemy_dmg
+        add_log(f"🩸 Dano recebido: {enemy_dmg}")
+        if st.session_state.hp <= 0: st.session_state.hp = 0
 
 # --- INTERFACE ---
-
-# Sidebar (Agora segura contra AttributeErrors)
 with st.sidebar:
-    st.header(f"💠 {st.session_state.hero_class}")
-    st.write(f"Nível: {st.session_state.level}")
-    st.progress(min(1.0, st.session_state.hp / st.session_state.max_hp))
-    st.write(f"❤️ HP: {st.session_state.hp} | 💰 Gold: {st.session_state.gold}")
+    st.header(f"💠 {st.session_state.hero_class} | Lvl {st.session_state.level}")
+    hp_ratio = max(0.0, min(1.0, st.session_state.hp / st.session_state.max_hp))
+    st.progress(hp_ratio)
+    st.write(f"❤️ HP: {st.session_state.hp}/{st.session_state.max_hp} | 💰 {st.session_state.gold}G")
+    st.write(f"🏰 Andar: {st.session_state.floor} | 🔋 Mana: {st.session_state.mana}")
     st.write("---")
-    st.write(f"⚔️ **Arma:** {st.session_state.weapon['name']}")
-    st.write(f"🛡️ **Defesa:** {st.session_state.armor['name']}")
-    if st.button("♻️ Resetar"):
-        for key in list(st.session_state.keys()): del st.session_state[key]
+    if st.button("💀 REINICIAR"):
+        st.session_state.clear()
         st.rerun()
 
-# Conteúdo Principal
+# TELA INICIAL COM TUTORIAL
 if not st.session_state.game_active:
-    st.title("🏰 DARK CASTLE")
-    st.write("Selecione sua classe:")
+    st.title("🏰 DARK CASTLE: ASCENSÃO")
+    
+    with st.expander("📖 GUIA DO AVENTUREIRO (COMO JOGAR)", expanded=True):
+        st.write("""
+        - **Objetivo:** Explore o castelo até o 5º andar para enfrentar o Lorde das Sombras.
+        - **Classes:** Guerreiros têm mais vida e ataque físico. Magos usam Mana para danos explosivos.
+        - **Exploração:** Cada 'Explorar' pode gerar um Monstro, um Baú de Loot ou uma sala vazia.
+        - **Andares:** Vença 3 combates para subir de andar. Inimigos ficam mais fortes a cada nível.
+        - **Baús:** Podem conter ouro e cura, mas cuidado... alguns são monstros disfarçados!
+        """)
+    
+    st.subheader("Escolha sua classe:")
     c1, c2 = st.columns(2)
     if c1.button("🛡️ GUERREIRO"): start_game("Guerreiro"); st.rerun()
     if c2.button("🔮 MAGO"): start_game("Mago"); st.rerun()
 
-elif st.session_state.in_shop:
-    st.title("🛒 MERCADO DA VILA")
-    st.write("Gaste suas moedas de ouro:")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("--- EQUIPAMENTOS ---")
-        if st.button("🗡️ Espada Longa (100G)"):
-            if st.session_state.gold >= 100:
-                st.session_state.gold -= 100
-                st.session_state.weapon = {"name": "Espada Longa", "atk": 20}
-                add_log("🛒 Comprou Espada Longa!")
-            else: add_log("❌ Ouro insuficiente!")
-            
-    with col2:
-        st.write("--- CONSUMÍVEIS ---")
-        if st.button("🧪 Poção de Vida (30G)"):
-            if st.session_state.gold >= 30:
-                st.session_state.gold -= 30
-                st.session_state.hp = st.session_state.max_hp
-                add_log("🧪 Vida restaurada!")
-            else: add_log("❌ Ouro insuficiente!")
+elif st.session_state.hp <= 0:
+    st.title("💀 FIM DA JORNADA")
+    st.write("Você pereceu nas profundezas do castelo.")
+    if st.button("TENTAR NOVAMENTE"):
+        st.session_state.clear()
+        st.rerun()
 
-    if st.button("🔙 SAIR DA LOJA"):
+elif st.session_state.in_shop:
+    st.title("🛒 MERCADOR")
+    c1, c2 = st.columns(2)
+    if c1.button("🗡️ ESPADA MÉDIA (100G)"):
+        if st.session_state.gold >= 100:
+            st.session_state.gold -= 100
+            st.session_state.weapon = {"name": "Espada Média", "atk": 25}
+            add_log("🛒 Comprou Espada Média!")
+        else: add_log("❌ Sem ouro!")
+    if c2.button("🧪 POÇÃO (40G)"):
+        if st.session_state.gold >= 40:
+            st.session_state.gold -= 40
+            st.session_state.hp = st.session_state.max_hp
+            add_log("🧪 Vida restaurada!")
+        else: add_log("❌ Sem ouro!")
+    if st.button("🔙 SAIR"):
         st.session_state.in_shop = False
         st.rerun()
 
 elif st.session_state.enemy:
-    enemy = st.session_state.enemy
-    st.subheader(f"👹 COMBATE: {enemy['name']}")
-    st.code(f"HP: {enemy['hp']}")
-    col1, col2 = st.columns(2)
-    if col1.button("⚔️ ATACAR"): combat_turn("attack"); st.rerun()
-    if col2.button("🔥 MAGIA"): combat_turn("magic"); st.rerun()
+    st.title(f"👹 COMBATE: {st.session_state.enemy['name']}")
+    st.error(f"HP INIMIGO: {st.session_state.enemy['hp']}")
+    c1, c2 = st.columns(2)
+    if c1.button("⚔️ ATACAR"): combat_turn("attack"); st.rerun()
+    if c2.button("🔥 MAGIA"): combat_turn("magic"); st.rerun()
+
+elif st.session_state.chest_found:
+    st.title("🎁 UM BAÚ FOI ENCONTRADO!")
+    st.write("Deseja arriscar e abri-lo?")
+    if st.button("🔓 ABRIR BAÚ"): open_chest(); st.rerun()
+    if st.button("🏃 IGNORAR E SEGUIR"): st.session_state.chest_found = False; add_log("👣 Você decidiu não arriscar."); st.rerun()
 
 else:
-    st.title("🌿 O CAMINHO")
-    st.write("O que deseja fazer?")
+    st.title(f"🏰 ANDAR {st.session_state.floor}")
+    st.write(f"Progresso: {st.session_state.progress_floor}/3")
     c1, c2 = st.columns(2)
     if c1.button("👣 EXPLORAR"):
-        if random.random() < 0.6:
-            st.session_state.enemy = {"name": "Goblin", "hp": 50}
-            add_log("❗ Inimigo avistado!")
-        else: add_log("👣 Caminhada tranquila...")
+        roll = random.random()
+        if roll < 0.5: # Monstro
+            monster_hp = 40 + (st.session_state.floor * 20)
+            st.session_state.enemy = {"name": random.choice(["Orc", "Esqueleto"]), "hp": monster_hp, "atk": 10 + st.session_state.floor*5}
+            add_log("❗ Monstro à frente!")
+        elif roll < 0.8: # Baú
+            st.session_state.chest_found = True
+            add_log("🎁 Você encontrou um baú misterioso!")
+        else:
+            add_log("👣 Apenas um corredor vazio...")
         st.rerun()
-    if c2.button("🛒 IR À LOJA"):
+    if c2.button("🛒 MERCADOR"):
         st.session_state.in_shop = True
         st.rerun()
 
