@@ -73,7 +73,7 @@ if not st.session_state.game_active:
             <b>🎯 Objetivo:</b> Explore o castelo, derrote inimigos para subir de andar e gerencie seu ouro no mercado.<br><br>
             <b>🛡️ Guerreiro:</b> Alta defesa e vida. Ideal para iniciantes.<br>
             <b>🔮 Mago:</b> Usa Mana para magias poderosas. Itens <span style='color:#00ffff'>RAROS</span> aumentam o dano mágico em 70%.<br>
-            <b>🪓 Berserker:</b> Quando sua vida está abaixo de 30%, você entra em <b>FÚRIA</b> (+90% de dano).<br>
+            <b>🪓 Berserker:</b> Quando sua vida está abaixo de 20%, você entra em <b>FÚRIA</b> (+90% de dano).<br>
             <b>🗡️ Assassino:</b> Possui 30% de chance de esquiva e 25% de chance de atordoar (Stun) o inimigo.<br><br>
             <b>💰 Mercado:</b> Itens de ataque e defesa são repostos automaticamente. Você também pode vender itens da mochila.
         </div>
@@ -92,7 +92,7 @@ elif st.session_state.state == 'playing':
 
     # Status do Jogador
     hp_pct = st.session_state.hp / st.session_state.max_hp
-    is_fury = st.session_state.hero_class == "Berserker" and hp_pct < 0.3
+    is_fury = st.session_state.hero_class == "Berserker" and hp_pct < 0.2
     rarity_style = "class='rare-item'" if st.session_state.weapon.get('rarity') == 'raro' else ""
 
     st.markdown(f"""
