@@ -741,11 +741,27 @@ def render_arena(enemy):
     if display_enemy and display_enemy.get('stunned'):
         stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
 
+import streamlit as st
+
+ss = st.session_state
+
+# Garantir que existe inimigo (ANTES de usar)
 display_enemy = ss.get("enemy", None)
 
-# Garantir que existe inimigo
-display_enemy = ss.get("enemy", None)
+# Damage number HTML
+dmg_html = ""
+if dmg_enemy is not None:
+    dmg_html += f'<div class="dmg-number {dmg_kind}" style="right:22%;bottom:105px">-{dmg_enemy}</div>'
 
+if dmg_hero is not None:
+    dmg_html += f'<div class="dmg-number dmg-hero" style="left:22%;bottom:105px">-{dmg_hero}</div>'
+
+# Stun effect
+stun_html = ""
+if display_enemy and display_enemy.get('stunned'):
+    stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
+
+# Enemy render
 enemy_html = ""
 
 if display_enemy:
