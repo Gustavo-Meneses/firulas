@@ -724,11 +724,68 @@ def render_arena(enemy):
 
     hero_sprite    = CLASSES.get(ss.hero_class, {}).get('sprite', '⚔️')
     display_enemy  = enemy or ss.get('dying_enemy')
-    enemy_sprite   = display_enemy['sprite'] if display_enemy else "👹"
-    enemy_name     = display_enemy['name']   if display_enemy else ""
+    
+    # Extração segura de dados do inimigo [2]
+    if display_enemy:
+        enemy_name     = display_enemy.get('name', "Inimigo")
+        enemy_sprite   = display_enemy.get('sprite', "👹")
+        enemy_hp       = max(0, display_enemy.get('hp', 0))
+        enemy_max_hp   = display_enemy.get('max_hp', 1)
+        enemy_hp_pct   = enemy_hp / enemy_max_hp
+    else:
+        enemy_name     = ""
+        enemy_sprite   = "👹"
+        enemy_hp       = 0
+        enemy_max_hp   = 1
+        enemy_hp_pct   = 0
 
     hero_hp_pct  = ss.hp / ss.max_hp
-    enemy_hp_pct = (max(0, display_enemy['hp']) / display_enemy['max_hp']) if display_enemy else 0
+
+    # Construção do HTML de Dano (Previne NameError) [3]
+    dmg_html = ""
+    if dmg_enemy is not None:
+        dmg_html += f'<div class="dmg-number {dmg_kind}" style="right:22%;bottom:105px">-{dmg_enemy}</div>'
+    if dmg_hero is not None:
+        dmg_html += f'<div class="dmg-number dmg-hero" style="left:22%;bottom:105px">-{dmg_hero}</div>'
+
+    # Efeito de Atordoamento [3]
+    stun_html = ""
+    if display_enemy and display_enemy.get('stunned'):
+        stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
+
+    # Renderização Final do HTML [2, 4]
+    st.markdown(f"""
+    <div class="arena-frame {anim_cls}">
+        <!-- Barra de Vida do Inimigo -->
+        <div class="arena-hp-row">
+            <span class="ahp-label" style="color:#8a5050">{enemy_name}</span>
+            <div class="ahp-bar">
+                <div class="ahp-fill-enemy" style="width:{enemy_hp_pct*100}%"></div>
+            </div>
+            <span class="ahp-val">{enemy_hp}/{enemy_max_hp}</span>
+        </div>
+
+        {dmg_html}
+        {stun_html}
+
+        <!-- Sprites -->
+        <div class="hero-sprite-wrap">
+            <div class="sprite sprite-hero">{hero_sprite}</div>
+        </div>
+        
+        <div class="enemy-sprite-wrap">
+            <div class="sprite sprite-enemy" style="transform:scaleX(-1)">{enemy_sprite}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Limpeza de estado após renderizar [2]
+    ss.arena_anim      = ANIM_NONE
+    ss.arena_dmg_hero  = None
+    ss.arena_dmg_enemy = None
+    ss.arena_dmg_kind  = ""
+    if not enemy:
+        ss['dying_enemy'] = None
 
     # Damage number HTML
     dmg_html = ""
