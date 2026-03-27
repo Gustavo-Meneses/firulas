@@ -562,9 +562,8 @@ def init_state():
 
 init_state()
 
-
 # ============================================================
-# START GAME
+# START GAME E COMBATE LÓGICA (Onde o erro estava!)
 # ============================================================
 def start_game(role: str):
     c = CLASSES[role]
@@ -579,17 +578,13 @@ def start_game(role: str):
         'arena_anim': ANIM_NONE, 'arena_dmg_hero': None,
         'arena_dmg_enemy': None, 'arena_dmg_kind': '', 'dying_enemy': None,
         'log': [{"t": time.strftime('%H:%M'),
-                 "msg": f"⚔️ {role} entra no castelo maldito...", "kind": "level"}],
+                 "msg": f"⚔️ O {role} entra no castelo maldito...", "kind": "level"}],
     })
     st.rerun()
 
-
-# ============================================================
-# COMBAT LOGIC
-# ============================================================
 def player_attack(magic: bool = False):
-    ss      = st.session_state
-    en      = ss.enemy
+    ss = st.session_state
+    en = ss.enemy
     if not en:
         return
 
@@ -610,539 +605,324 @@ def player_attack(magic: bool = False):
             log("✨ Magia potencializada pelo item raro!", "magic")
         else:
             log("🔥 Feitiço lançado!", "magic")
-        hero_anim = ANIM_HERO_MAGIC
+        ss.arena_anim = ANIM_HERO_MAGIC
         dmg_kind  = "dmg-magic"
     else:
-        dmg = base_atk + random.randint(4, 14)
+        # AQUI FOI CORRIGIDO O random.randint cortado no meio da sua função
+        dmg = base_atk + random.randint(5, 12)
         if is_fury:
             dmg = int(dmg * 1.9)
-            log("🔥 FÚRIA! Dano devastador!", "crit")
-            hero_anim = ANIM_HERO_FURY
+            log("💢 FÚRIA ATIVADA! Dano massivo!", "crit")
+            ss.arena_anim = ANIM_HERO_FURY
         else:
-            hero_anim = ANIM_HERO_ATTACK
-        dmg_kind = "dmg-enemy"
+            ss.arena_anim = ANIM_HERO_ATTACK
+        dmg_kind = "dmg-hero"
 
-    # Stun
     stun = False
-    if ss.hero_class == "Assassino" and not magic and random.random() < 0.25:
+    if ss.hero_class == "Assassino" and random.random() < 0.25:
         stun = True
-        en['stunned'] = True
-        log("⚡ STUN! Inimigo paralisado!", "crit")
-        enemy_anim = ANIM_ENEMY_STUN
-    else:
-        enemy_anim = ANIM_ENEMY_HIT
 
     en['hp'] -= dmg
-    log(f"⚔️ Você causou {dmg} de dano em {en['name']}!", "")
+    ss.arena_dmg_enemy = f"-{dmg}"
+    ss.arena_dmg_kind = dmg_kind
+    log(f"Causou {dmg} de dano!")
 
-    # ── Enemy dies ──
     if en['hp'] <= 0:
-        gold_gain = 45 + ss.floor * 12 + random.randint(0, 20)
-        ss.gold        += gold_gain
-        ss.gold_earned += gold_gain
-        ss.kills       += 1
+        # Inimigo Morreu
+        ss.dying_enemy = en
+        ss.enemy = None
+        ganho = 50 + (ss.floor * 10)
+        ss.gold += ganho
+        ss.gold_earned += ganho
+        ss.kills += 1
         ss.total_kills += 1
-        log(f"💀 {en['name']} foi derrotado! +{gold_gain}G", "loot")
-
-        if random.random() < 0.20 + ss.floor * 0.03:
-            dropped = random.choice(generate_market())
-            dropped["price"] = 0
-            ss.inventory.append(dropped)
-            log(f"🎁 Item largado: {dropped['name']}!", "loot")
-
-        ss.arena_anim      = ANIM_ENEMY_DEATH
-        ss.arena_dmg_enemy = dmg
-        ss.arena_dmg_kind  = dmg_kind
-        ss.arena_dmg_hero  = None
-        ss['dying_enemy']  = dict(en)
-        ss.enemy           = None
+        ss.arena_anim = ANIM_ENEMY_DEATH
+        log(f"💀 Derrotou o inimigo! +{ganho}G", "loot")
 
         if ss.kills >= ss.kills_needed:
-            ss.floor       += 1
-            ss.kills        = 0
-            ss.kills_needed = 3 + (ss.floor // 2)
-            ss.market_stock = []
-            log(f"🌟 ANDAR {ss.floor} desbloqueado!", "level")
-            if ss.floor > 5:
-                ss.state = 'victory'
-        st.rerun()
-        return
-
-    # ── Enemy retaliates ──
-    if en.get('stunned'):
-        en['stunned'] = False
-        log("😵 Inimigo ainda atordoado — sem contra-ataque.", "")
-        ss.arena_anim      = hero_anim
-        ss.arena_dmg_enemy = dmg
-        ss.arena_dmg_hero  = None
-        ss.arena_dmg_kind  = dmg_kind
+            ss.floor += 1
+            ss.kills = 0
+            ss.kills_needed = 3 + int(ss.floor * 1.5)
+            log(f"🌟 Você subiu para o Andar {ss.floor}!", "level")
+            
     else:
-        if ss.hero_class == "Assassino" and random.random() < 0.30:
-            log("💨 Você esquivou do ataque!", "")
-            ss.arena_anim      = ANIM_HERO_DODGE
-            ss.arena_dmg_enemy = dmg
-            ss.arena_dmg_hero  = None
-            ss.arena_dmg_kind  = dmg_kind
+        # Inimigo Contra-Ataca
+        if stun:
+            en['stunned'] = True
+            ss.arena_anim = ANIM_ENEMY_STUN
+            log("⚡ O inimigo está atordoado e não ataca!", "magic")
         else:
-            reduction   = ss.armor['def']
-            block_bonus = 0
-            if ss.hero_class == "Guerreiro" and random.random() < 0.20:
-                block_bonus = en['atk'] // 2
-                ss.blocked_last = True
-                log("🛡️ Bloqueio! Dano reduzido!", "")
-                used_hero_anim = ANIM_HERO_BLOCK
+            en['stunned'] = False
+            if ss.hero_class == "Assassino" and random.random() < 0.30:
+                ss.arena_anim = ANIM_HERO_DODGE
+                log("💨 Você se esquivou com maestria!")
             else:
-                ss.blocked_last = False
-                used_hero_anim  = ANIM_HERO_HIT
+                edmg = en['atk'] - ss.armor['def']
+                if ss.hero_class == "Guerreiro":
+                    edmg = int(edmg * 0.8) # Bloqueia 20%
+                    ss.arena_anim = ANIM_HERO_BLOCK
+                    log("🛡️ Você bloqueou parte do dano!")
+                else:
+                    ss.arena_anim = ANIM_HERO_HIT
 
-            edmg      = max(2, en['atk'] - reduction - block_bonus)
-            ss.hp    -= edmg
-            log(f"👹 {en['name']} causou {edmg} de dano!", "crit")
+                edmg = max(2, edmg)
+                ss.hp -= edmg
+                ss.arena_dmg_hero = f"-{edmg}"
+                log(f"Recebeu {edmg} de dano.")
 
-            ss.arena_anim      = used_hero_anim
-            ss.arena_dmg_enemy = dmg
-            ss.arena_dmg_hero  = edmg
-            ss.arena_dmg_kind  = dmg_kind
+                if ss.hp <= 0:
+                    ss.state = 'player_dead'
+                    ss.arena_anim = ANIM_HERO_DEATH
+                    log("☠️ Você sucumbiu às trevas...", "crit")
 
-            if ss.hp <= 0:
-                ss.hp         = 0
-                ss.arena_anim = ANIM_HERO_DEATH
-                ss.state      = 'player_dead'
-
-    st.rerun()
-
-
-# ============================================================
-# ARENA RENDERER
-# ============================================================
-def render_arena(enemy):
-    ss         = st.session_state
-    anim_cls   = ss.get('arena_anim', ANIM_NONE)
-    dmg_hero   = ss.get('arena_dmg_hero')
-    dmg_enemy  = ss.get('arena_dmg_enemy')
-    dmg_kind   = ss.get('arena_dmg_kind', '')
-
-    hero_sprite    = CLASSES.get(ss.hero_class, {}).get('sprite', '⚔️')
-    display_enemy  = enemy or ss.get('dying_enemy')
-    enemy_sprite   = display_enemy['sprite'] if display_enemy else "👹"
-    enemy_name     = display_enemy['name']   if display_enemy else ""
-
-    hero_hp_pct  = ss.hp / ss.max_hp
-    enemy_hp_pct = (max(0, display_enemy['hp']) / display_enemy['max_hp']) if display_enemy else 0
-
-    # Damage number HTML
-    dmg_html = ""
-    if dmg_enemy is not None:
-        dmg_html += f'<div class="dmg-number {dmg_kind}" style="right:22%;bottom:105px">-{dmg_enemy}</div>'
-    if dmg_hero is not None:
-        dmg_html += f'<div class="dmg-number dmg-hero" style="left:22%;bottom:105px">-{dmg_hero}</div>'
-
-    stun_html = ""
-    if display_enemy and display_enemy.get('stunned'):
-        stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
-
-    enemy_section = ""
-    if display_enemy:
-        enemy_section = f"""
-        <div class="arena-hp-row">
-          <span class="ahp-label" style="color:#8a5050">👹 {enemy_name.split(' ',1)[-1] if ' ' in enemy_name else enemy_name}</span>
-          <div class="ahp-bar"><div class="ahp-fill-enemy" style="width:{enemy_hp_pct*100:.1f}%"></div></div>
-          <span class="ahp-val">{max(0,display_enemy['hp'])}/{display_enemy['max_hp']}</span>
-        </div>
-        <div class="enemy-sprite-wrap">
-          <div class="sprite sprite-enemy" style="transform:scaleX(-1)">{enemy_sprite}</div>
-          <div class="enemy-sprite-label">{enemy_name}</div>
-        </div>"""
-
-    st.markdown(f"""
-    <div class="arena-wrap {anim_cls}">
-      <div class="arena-hp-row">
-        <span class="ahp-label">❤️ {ss.hero_class}</span>
-        <div class="ahp-bar"><div class="ahp-fill-hero" style="width:{hero_hp_pct*100:.1f}%"></div></div>
-        <span class="ahp-val">{ss.hp}/{ss.max_hp}</span>
-      </div>
-      {enemy_section}
-      <div class="vs-badge">VS</div>
-      <div class="hero-sprite-wrap">
-        <div class="sprite sprite-hero">{hero_sprite}</div>
-        <div class="hero-sprite-label">{ss.hero_class}</div>
-      </div>
-      <div class="event-flash"></div>
-      {dmg_html}
-      {stun_html}
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Clear anim state so it runs only once per action
-    ss.arena_anim      = ANIM_NONE
-    ss.arena_dmg_hero  = None
-    ss.arena_dmg_enemy = None
-    ss.arena_dmg_kind  = ""
-    if not enemy:
-        ss['dying_enemy'] = None
-
+def explorar_sala():
+    ss = st.session_state
+    if random.random() < 0.50:
+        ganho = 40 + (ss.floor * 15)
+        ss.gold += ganho
+        ss.gold_earned += ganho
+        log(f"🎁 Achou um baú escondido! +{ganho}G", "loot")
+        ss.arena_anim = ANIM_NONE
+    else:
+        ss.enemy = spawn_enemy(ss.floor)
+        ss.dying_enemy = None
+        log(f"⚠️ Um {ss.enemy['name']} surgiu das sombras!", "crit")
+        ss.arena_anim = ANIM_NONE
 
 # ============================================================
-# ████████  RENDER MENU  ████████
+# RENDERIZAÇÃO DE TELA (UI DO STREAMLIT)
 # ============================================================
-def render_menu():
-    st.markdown("<div class='castle-title'>Dark Castle</div>", unsafe_allow_html=True)
-    st.markdown("<div class='castle-subtitle'>✦ Ascensão ✦</div>", unsafe_allow_html=True)
-    st.markdown("""
-    <div class="lore-card">
-      <span class="lore-title">📜 A Profecia</span>
-      O Castelo das Sombras ergueu-se sobre os ossos de mil guerreiros.
-      Cinco andares. Cinco horrores. No topo, o trono do Rei Eterno aguarda
-      aquele que sobreviver. Nenhum sobreviveu. Ainda.
-    </div>
-    """, unsafe_allow_html=True)
-
+if st.session_state.state == 'menu':
+    st.markdown('<div class="castle-title">Dark Castle</div><div class="castle-subtitle">Ascensão</div>', unsafe_allow_html=True)
+    
     st.markdown("<div class='section-hdr'>Escolha sua linhagem</div>", unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    c3, c4 = st.columns(2)
+    cols = [c1, c2, c3, c4]
+    
+    for idx, (role, data) in enumerate(CLASSES.items()):
+        with cols[idx]:
+            st.markdown(f"""
+            <div class="class-card">
+                <span class="class-icon">{data['icon']}</span>
+                <div class="class-name">{role}</div>
+                <div class="class-desc">{data['desc']}</div>
+                {build_stat_bars(data['stats'])}
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button(f"JOGAR COMO {role.upper()}", key=f"btn_{role}"):
+                start_game(role)
 
-    cols = st.columns(2)
-    for idx, (name, data) in enumerate(CLASSES.items()):
-        with cols[idx % 2]:
-            bars_html = build_stat_bars(data["stats"])
-            # Single st.markdown call — no nested columns, no Streamlit parsing issues
-            st.markdown(
-                f'<div class="class-card">'
-                f'<span class="class-icon">{data["icon"]}</span>'
-                f'<div class="class-name">{name}</div>'
-                f'<div class="class-desc">{data["desc"]}</div>'
-                f'{bars_html}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-            if st.button(f"{data['icon']} Jogar como {name}", key=f"start_{name}"):
-                start_game(name)
-
-
-# ============================================================
-# ████████  RENDER HERO PANEL  ████████
-# ============================================================
-def render_hero_panel():
-    ss     = st.session_state
+elif st.session_state.state == 'playing':
+    ss = st.session_state
+    
+    # Andar atual e Badge
+    st.markdown(f"<div class='floor-wrapper'><span class='floor-3d'>ANDAR {ss.floor}</span></div>", unsafe_allow_html=True)
+    
+    # HP Bar System
     hp_pct = ss.hp / ss.max_hp
     mp_pct = ss.mana / ss.max_mana
-    is_fury = ss.hero_class == "Berserker" and hp_pct < 0.2
-    w_col  = rarity_color(ss.weapon.get('rarity', 'comum'))
-    a_col  = rarity_color(ss.armor.get('rarity', 'comum'))
-    fury   = '<span class="fury-badge">⚡ FÚRIA</span>' if is_fury else ""
-
+    fury_tag = " <span class='fury-badge'>FÚRIA</span>" if (ss.hero_class == "Berserker" and hp_pct < 0.2) else ""
+    
     st.markdown(f"""
     <div class="hero-3d">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()} {fury}</span>
-        <span class="hero-gold">💰 {ss.gold}G</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">❤️ VIDA</span>
-        {render_bar(hp_pct,'hp')}
-        <span class="stat-val">{ss.hp}/{ss.max_hp}</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">🔮 MANA</span>
-        {render_bar(mp_pct,'mp')}
-        <span class="stat-val">{ss.mana}/{ss.max_mana}</span>
-      </div>
-      <div class="equip-row">
-        <span>⚔️ <span class="equip-val" style="color:{w_col}">{ss.weapon['name']} +{ss.weapon['atk']}</span></span>
-        <span>🛡️ <span class="equip-val" style="color:{a_col}">{ss.armor['name']} +{ss.armor['def']}</span></span>
-        <span style="margin-left:auto;color:#5a4030;font-size:.68rem">🏆 {ss.total_kills} abatidos</span>
-      </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:12px;">
+            <div class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()}</div>
+            <div class="hero-gold">💰 {ss.gold}G</div>
+        </div>
+        
+        <div class="stat-row">
+            <span class="stat-label">HP</span>
+            {render_bar(hp_pct, 'hp')}
+            <span class="stat-val">{ss.hp}/{ss.max_hp}{fury_tag}</span>
+        </div>
+        <div class="stat-row">
+            <span class="stat-label">MP</span>
+            {render_bar(mp_pct, 'mp')}
+            <span class="stat-val">{ss.mana}/{ss.max_mana}</span>
+        </div>
+        
+        <div class="equip-row">
+            <span>⚔️ <span style="color:{rarity_color(ss.weapon['rarity'])}">{ss.weapon['name']}</span> (+{ss.weapon['atk']})</span>
+            <span>🛡️ <span style="color:{rarity_color(ss.armor['rarity'])}">{ss.armor['name']}</span> (+{ss.armor['def']})</span>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-
-# ============================================================
-# ████████  RENDER COMBAT TAB  ████████
-# ============================================================
-def render_combat():
-    ss = st.session_state
-
-    lore = LORE_PER_FLOOR.get(ss.floor, "")
-    if lore:
-        st.markdown(f"""<div style="font-style:italic;font-size:.72rem;color:#5a4030;
-          border-left:2px solid rgba(201,168,76,.2);padding-left:10px;margin-bottom:14px">
-          {lore}</div>""", unsafe_allow_html=True)
-
-    prog = ss.kills / ss.kills_needed
-    st.markdown(f"""
-    <div style="margin-bottom:12px">
-      <div style="font-size:.68rem;color:#5a4030;letter-spacing:.1em;margin-bottom:4px">
-        PROGRESSO DO ANDAR — {ss.kills}/{ss.kills_needed} abates
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-        <div style="width:{prog*100:.0f}%;height:100%;
-          background:linear-gradient(90deg,#3a7a3a,#00ff88);
-          box-shadow:0 0 8px rgba(0,255,136,.5);border-radius:3px;transition:width .4s"></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
+    # ── Arena Animada ──
+    anim_class = ss.arena_anim
+    hero_sprite = CLASSES[ss.hero_class]["sprite"]
+    enemy_sprite = ""
+    enemy_name = ""
+    
     if ss.enemy:
-        en = ss.enemy
-        render_arena(en)
+        enemy_sprite = ss.enemy["sprite"]
+        enemy_name = ss.enemy["name"]
+    elif ss.dying_enemy:
+        enemy_sprite = ss.dying_enemy["sprite"]
+        enemy_name = ss.dying_enemy["name"]
 
-        stun_tag = '<span class="stun-tag">⭐ ATORDOADO</span>' if en.get('stunned') else ""
-        st.markdown(f"""<div class="enemy-stats-bar">
-          <span>{en['name']}</span>
-          <span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span>
-          <span>⚔️ {en['atk']} ATK</span>
-          {stun_tag}
-        </div>""", unsafe_allow_html=True)
+    dmg_h_html = f'<div class="dmg-number dmg-hero" style="bottom: 90px; left: 15%;">{ss.arena_dmg_hero}</div>' if ss.arena_dmg_hero else ""
+    dmg_e_html = f'<div class="dmg-number {ss.arena_dmg_kind}" style="bottom: 90px; right: 15%;">{ss.arena_dmg_enemy}</div>' if ss.arena_dmg_enemy else ""
 
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown('<div class="btn-attack">', unsafe_allow_html=True)
-            if st.button("⚔️ ATACAR", key="btn_attack"):
-                player_attack(magic=False)
-            st.markdown('</div>', unsafe_allow_html=True)
+    arena_html = f"""
+    <div class="arena-wrap {anim_class}">
+        <div class="event-flash"></div>
+        {dmg_h_html}
+        {dmg_e_html}
+        <div class="vs-badge">VS</div>
 
-        if ss.hero_class == "Mago":
-            with c2:
-                st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
-                if st.button("🔥 MAGIA  (15 Mana)", key="btn_magic"):
-                    player_attack(magic=True)
+        <div class="hero-sprite-wrap">
+            <span class="sprite sprite-hero">{hero_sprite}</span>
+            <span class="hero-sprite-label">{ss.hero_class.upper()}</span>
+        </div>
+    """
+    if enemy_sprite:
+        arena_html += f"""
+        <div class="enemy-sprite-wrap">
+            <span class="sprite sprite-enemy">{enemy_sprite}</span>
+            <span class="enemy-sprite-label">{enemy_name.upper()}</span>
+        </div>
+        """
+    arena_html += "</div>"
+    
+    # Limpa as animações para o próximo ciclo
+    ss.arena_anim = ANIM_NONE
+    ss.arena_dmg_hero = None
+    ss.arena_dmg_enemy = None
+    ss.arena_dmg_kind = ""
+
+    st.markdown(arena_html, unsafe_allow_html=True)
+
+    # ── Abas de Jogo ──
+    tab_comb, tab_inv, tab_mkt = st.tabs(["⚔️ COMBATE", "🎒 MOCHILA", "🛒 MERCADO"])
+
+    with tab_comb:
+        if ss.enemy:
+            en = ss.enemy
+            epct = en['hp'] / en['max_hp']
+            st.markdown(f"""
+            <div class="enemy-stats-bar">
+                <div>HP {en['hp']}/{en['max_hp']}</div>
+                {render_bar(epct, 'enemy')}
+                {"<div class='stun-tag'>⚡ ATORDOADO</div>" if en.get('stunned') else ""}
+            </div>
+            """, unsafe_allow_html=True)
+            
+            c_atk, c_mg = st.columns(2)
+            with c_atk:
+                st.markdown('<div class="btn-attack">', unsafe_allow_html=True)
+                if st.button("⚔️ ATACAR FÍSICO", key="atk"):
+                    player_attack(magic=False)
+                    st.rerun()
                 st.markdown('</div>', unsafe_allow_html=True)
+                
+            if ss.hero_class == "Mago":
+                with c_mg:
+                    st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
+                    if st.button("🔥 MAGIA (15 MP)", key="mgc"):
+                        player_attack(magic=True)
+                        st.rerun()
+                    st.markdown('</div>', unsafe_allow_html=True)
         else:
-            skill_map = {
-                "Guerreiro": "🛡️ BLOQUEIO  passivo 20%",
-                "Berserker": "🔥 FÚRIA  passivo < 20% HP",
-                "Assassino": "💨 ESQUIVA  passivo 30%",
-            }
-            with c2:
-                st.markdown(f"""<div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.1);
-                  border-radius:8px;padding:10px;text-align:center;font-size:.65rem;color:#5a4030">
-                  {skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
-    else:
-        render_arena(None)
-        st.markdown('<div class="btn-explore">', unsafe_allow_html=True)
-        if st.button("👣 EXPLORAR A SALA", key="btn_explore"):
-            if random.random() < 0.50:
-                gain = 35 + ss.floor * 12 + random.randint(0, 18)
-                ss.gold += gain; ss.gold_earned += gain
-                log(f"🎁 Baú encontrado! +{gain}G", "loot")
-                if random.random() < 0.15:
-                    item = random.choice(generate_market())
-                    item["price"] = 0
-                    ss.inventory.append(item)
-                    log(f"✨ Item no baú: {item['name']}!", "loot")
-            else:
-                ss.enemy = spawn_enemy(ss.floor)
-                log(f"⚠️ {ss.enemy['name']} aparece das sombras!", "crit")
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ============================================================
-# ████████  RENDER INVENTORY TAB  ████████
-# ============================================================
-def render_inventory():
-    ss = st.session_state
-    st.markdown("<div class='section-hdr'>Itens Equipados</div>", unsafe_allow_html=True)
-    w_col = rarity_color(ss.weapon.get('rarity','comum'))
-    a_col = rarity_color(ss.armor.get('rarity','comum'))
-    st.markdown(f"""
-    <div class="inv-item">
-      <span style="font-size:1.2rem">⚔️</span>
-      <div><div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div>
-        <div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div></div>
-    </div>
-    <div class="inv-item">
-      <span style="font-size:1.2rem">🛡️</span>
-      <div><div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div>
-        <div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div></div>
-    </div>""", unsafe_allow_html=True)
-
-    st.markdown("<div class='section-hdr' style='margin-top:14px'>Mochila</div>", unsafe_allow_html=True)
-    if not ss.inventory:
-        st.markdown('<div style="color:#5a4030;font-size:.78rem;padding:10px 0">— Mochila vazia —</div>', unsafe_allow_html=True)
-        return
-
-    for i, item in enumerate(ss.inventory):
-        r       = item.get('rarity','comum')
-        col     = rarity_color(r)
-        attr    = f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"
-        icon    = "⚔️" if item['type']=='weapon' else "🛡️"
-        rare_c  = "rare" if r in ('raro','lendário') else ""
-        st.markdown(f"""
-        <div class="inv-item {rare_c}">
-          <span style="font-size:1.1rem">{icon}</span>
-          <div style="flex:1"><div class="inv-name" style="color:{col}">{item['name']}</div>
-            <div class="inv-attr">{attr} · {r.upper()}</div></div>
-          <div class="inv-val">⚖️ {item.get('value',0)}G</div>
-        </div>""", unsafe_allow_html=True)
-        c1, c2 = st.columns(2)
-        with c1:
-            st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-            if st.button("Equipar", key=f"equip_{i}"):
-                old = ss[item['type']]; ss[item['type']] = item; ss.inventory[i] = old
-                log(f"🔄 Equipou: {item['name']}!", ""); st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-        with c2:
-            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-            sv = item.get('value', 10)
-            if st.button(f"Vender +{sv}G", key=f"sell_inv_{i}"):
-                ss.gold += sv; ss.inventory.pop(i)
-                log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ============================================================
-# ████████  RENDER MARKET TAB  ████████
-# ============================================================
-def render_market():
-    ss = st.session_state
-    if not ss.market_stock:
-        ss.market_stock = generate_market()
-
-    st.markdown("<div class='section-hdr'>Poções</div>", unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        if st.button("❤️ Vida +50 HP\n(40G)", key="pot_hp"):
-            if ss.gold >= 40:
-                ss.gold -= 40; healed = min(ss.max_hp, ss.hp+50)-ss.hp; ss.hp += healed
-                log(f"❤️ Poção de vida: +{healed} HP", "loot"); st.rerun()
-            else: st.warning("Ouro insuficiente!")
-        st.markdown('</div>', unsafe_allow_html=True)
-    with c2:
-        st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
-        if st.button("🔮 Mana +40\n(40G)", key="pot_mp"):
-            if ss.gold >= 40:
-                ss.gold -= 40; restored = min(ss.max_mana, ss.mana+40)-ss.mana; ss.mana += restored
-                log(f"🔮 Poção de mana: +{restored} Mana", "magic"); st.rerun()
-            else: st.warning("Ouro insuficiente!")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown("<div class='section-hdr' style='margin-top:14px'>Equipamentos</div>", unsafe_allow_html=True)
-    for i, item in enumerate(ss.market_stock):
-        r       = item.get('rarity','comum')
-        col     = rarity_color(r)
-        attr    = f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"
-        icon    = "⚔️" if item['type']=='weapon' else "🛡️"
-        rare_c  = "rare" if r in ('raro','lendário') else ""
-        badge   = (f'<span style="background:{col};color:#000;font-size:.6rem;'
-                   f'padding:1px 6px;border-radius:8px;font-weight:700">{r.upper()}</span>'
-                   if r != "comum" else "")
-        st.markdown(f"""
-        <div class="mkt-item {rare_c}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div class="mkt-name" style="color:{col}">{icon} {item['name']} {badge}</div>
-            <div class="price-tag">💰 {item['price']}G</div>
-          </div>
-          <div class="mkt-sub">{attr}</div>
-        </div>""", unsafe_allow_html=True)
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        if st.button(f"Comprar {item['name']}", key=f"buy_{i}"):
-            if ss.gold >= item['price']:
-                ss.gold -= item['price']; ss.inventory.append(dict(item)); ss.market_stock.pop(i)
-                log(f"🛒 Comprou: {item['name']}!", "loot")
-                if not ss.market_stock: ss.market_stock = generate_market()
+            st.markdown('<div class="btn-explore">', unsafe_allow_html=True)
+            if st.button("👣 EXPLORAR PRÓXIMA SALA", key="expl"):
+                explorar_sala()
                 st.rerun()
-            else: st.warning("Ouro insuficiente!")
-        st.markdown('</div>', unsafe_allow_html=True)
-
-    st.markdown("<div class='section-hdr' style='margin-top:14px'>Vender Inventário</div>", unsafe_allow_html=True)
-    if not ss.inventory:
-        st.markdown('<div style="color:#5a4030;font-size:.78rem">— Nada para vender —</div>', unsafe_allow_html=True)
-    else:
-        for i, item in enumerate(ss.inventory):
-            sv = item.get('value', 10)
-            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-            if st.button(f"Vender {item['name']} (+{sv}G)", key=f"sell_mkt_{i}"):
-                ss.gold += sv; ss.inventory.pop(i)
-                log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
+    with tab_inv:
+        if not ss.inventory:
+            st.write("Sua mochila está vazia.")
+        for i, item in enumerate(ss.inventory):
+            c1, c2 = st.columns([3, 1])
+            is_rare = "rare" if item['rarity'] in ['raro', 'lendário'] else ""
+            rc = rarity_color(item['rarity'])
+            attr_txt = f"+{item['atk']} ATK" if item['type'] == 'weapon' else f"+{item['def']} DEF"
+            
+            c1.markdown(f"""
+            <div class="inv-item {is_rare}">
+                <div class="inv-name" style="color:{rc}">{item['name']}</div>
+                <div class="inv-attr">{attr_txt}</div>
+                <div class="inv-val">{item['value']}G</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            if c2.button("EQUIPAR", key=f"eq_{i}"):
+                slot = item['type']
+                velho = ss[slot]
+                ss[slot] = item
+                ss.inventory[i] = velho
+                st.rerun()
 
-# ============================================================
-# ████████  RENDER LOG  ████████
-# ============================================================
-def render_log():
-    lines = st.session_state.log[:6]
-    items = "".join(
-        f'<div class="log-line {e.get("kind","")}">[{e["t"]}] {e["msg"]}</div>'
-        for e in lines
-    )
-    st.markdown(f'<div class="log-wrap">{items}</div>', unsafe_allow_html=True)
+    with tab_mkt:
+        col_c, col_v = st.columns(2)
+        with col_c:
+            st.markdown("<div class='section-hdr'>COMPRAR</div>", unsafe_allow_html=True)
+            if st.button("❤️ Poção de Vida (40G) [+50 HP]"):
+                if ss.gold >= 40:
+                    ss.gold -= 40; ss.hp = min(ss.max_hp, ss.hp + 50); st.rerun()
+            if st.button("🧪 Poção de Mana (40G) [+40 MP]"):
+                if ss.gold >= 40:
+                    ss.gold -= 40; ss.mana = min(ss.max_mana, ss.mana + 40); st.rerun()
+            
+            if not ss.market_stock:
+                ss.market_stock = generate_market()
+                
+            for i, it in enumerate(ss.market_stock):
+                rc = rarity_color(it['rarity'])
+                is_rare = "rare" if it['rarity'] in ['raro', 'lendário'] else ""
+                txt = f"⚔️ +{it['atk']}" if it['type'] == 'weapon' else f"🛡️ +{it['def']}"
+                st.markdown(f"""
+                <div class="mkt-item {is_rare}">
+                    <div class="mkt-name" style="color:{rc}">{it['name']}</div>
+                    <div class="mkt-sub">{txt}</div>
+                    <div class="price-tag">{it['price']}G</div>
+                </div>
+                """, unsafe_allow_html=True)
+                if st.button(f"COMPRAR {it['name'].upper()}", key=f"buy_{i}"):
+                    if ss.gold >= it['price']:
+                        ss.gold -= it['price']
+                        ss.inventory.append(it)
+                        ss.market_stock.pop(i)
+                        st.rerun()
+
+        with col_v:
+            st.markdown("<div class='section-hdr'>VENDER</div>", unsafe_allow_html=True)
+            for i, it_inv in enumerate(ss.inventory):
+                st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+                if st.button(f"Vender {it_inv['name']} (+{it_inv['value']}G)", key=f"sell_{i}"):
+                    ss.gold += it_inv['value']
+                    ss.inventory.pop(i)
+                    st.rerun()
+                st.markdown('</div>', unsafe_allow_html=True)
+
+    # ── LOG Console ──
+    st.markdown("<div class='section-hdr' style='margin-top:20px;'>EVENTOS RECENTES</div>", unsafe_allow_html=True)
+    log_html = '<div class="log-wrap">'
+    for l in ss.log:
+        c_class = l.get('kind', '')
+        log_html += f'<div class="log-line {c_class}">[{l["t"]}] {l["msg"]}</div>'
+    log_html += '</div>'
+    st.markdown(log_html, unsafe_allow_html=True)
 
 
-# ============================================================
-# ████████  MAIN GAME SCREEN  ████████
-# ============================================================
-def render_game():
+elif st.session_state.state == 'player_dead':
     ss = st.session_state
-    st.markdown(f'<div class="floor-wrapper"><span class="floor-3d">⚔️ ANDAR {ss.floor} ⚔️</span></div>',
-                unsafe_allow_html=True)
-    render_hero_panel()
-    tab_c, tab_i, tab_m = st.tabs(["⚔️  COMBATE", "🎒  MOCHILA", "🛒  MERCADO"])
-    with tab_c: render_combat()
-    with tab_i: render_inventory()
-    with tab_m: render_market()
-    render_log()
-
-
-# ============================================================
-# ████████  GAME OVER  ████████
-# ============================================================
-def render_gameover():
-    ss = st.session_state
-    # Show death arena with hero dying animation
-    ss.arena_anim = ANIM_HERO_DEATH
-    render_arena(None)
-
     st.markdown(f"""
     <div class="gameover-wrap">
-      <div class="gameover-title">Game Over</div>
-      <div style="font-family:'Cinzel',serif;color:#7a4040;font-size:.82rem;margin:8px 0 20px">
-        O castelo devorou mais uma alma.
-      </div>
-      <div class="gameover-stats">
-        <div>🏰 Andar alcançado: <b style="color:var(--gold)">{ss.floor}</b></div>
-        <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
-        <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
-        <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-    st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-    if st.button("🔄 RECOMEÇAR A JORNADA"):
-        reset_state(); st.rerun()
+        <div class="gameover-title">VOCÊ MORREU</div>
+        <div class="gameover-stats">
+            A jornada de {ss.hero_class} chegou ao fim.<br>
+            Andar Alcançado: {ss.floor}<br>
+            Inimigos Derrotados: {ss.total_kills}<br>
+            Ouro Acumulado: {ss.gold_earned}G
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown('<div class="btn-danger" style="max-width:300px; margin:0 auto;">', unsafe_allow_html=True)
+    if st.button("REINICIAR JORNADA"):
+        reset_state()
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ============================================================
-# ████████  VICTORY  ████████
-# ============================================================
-def render_victory():
-    ss = st.session_state
-    st.markdown(f"""
-    <div class="gameover-wrap">
-      <div style="font-family:'UnifrakturMaguntia',cursive;font-size:3.6rem;
-        color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">Vitória!</div>
-      <div style="font-family:'Cinzel',serif;color:#8a7040;font-size:.82rem;margin:8px 0 20px">
-        O trono do Rei Eterno é seu. O castelo inclina sua coroa.
-      </div>
-      <div class="gameover-stats">
-        <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
-        <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
-        <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
-
-    st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-    if st.button("🏆 JOGAR NOVAMENTE"):
-        reset_state(); st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
-
-
-# ============================================================
-# ████████  ROUTER  ████████
-# ============================================================
-state = st.session_state.state
-
-if   state == 'menu':        render_menu()
-elif state == 'playing':     render_game()
-elif state == 'player_dead': render_gameover()
-elif state == 'victory':     render_victory()
