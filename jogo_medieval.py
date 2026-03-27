@@ -534,7 +534,6 @@ def build_stat_bars(stats: dict) -> str:
             f'<span class="cs-stat-label">{icons.get(stat_name,"")} {stat_name}</span>'
             f'<div class="cs-stat-bar-bg">'
             f'<div class="cs-stat-bar-fill" style="width:{pct}%"></div>'
-            f'</div></div>'
         )
     return html
 
