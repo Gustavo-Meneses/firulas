@@ -741,89 +741,46 @@ def render_arena(enemy):
     if display_enemy and display_enemy.get('stunned'):
         stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
 
-import streamlit as st
+    enemy_section = ""
+    if display_enemy:
+        enemy_section = f"""
+        <div class="arena-hp-row">
+          <span class="ahp-label" style="color:#8a5050">👹 {enemy_name.split(' ',1)[-1] if ' ' in enemy_name else enemy_name}</span>
+          <div class="ahp-bar"><div class="ahp-fill-enemy" style="width:{enemy_hp_pct*100:.1f}%"></div></div>
+          <span class="ahp-val">{max(0,display_enemy['hp'])}/{display_enemy['max_hp']}</span>
+        </div>
+        <div class="enemy-sprite-wrap">
+          <div class="sprite sprite-enemy" style="transform:scaleX(-1)">{enemy_sprite}</div>
+          <div class="enemy-sprite-label">{enemy_name}</div>
+        </div>"""
 
-ss = st.session_state
-
-# Garantir que existe inimigo (ANTES de usar)
-display_enemy = ss.get("enemy", None)
-
-# Damage number HTML
-dmg_html = ""
-if dmg_enemy is not None:
-    dmg_html += f'<div class="dmg-number {dmg_kind}" style="right:22%;bottom:105px">-{dmg_enemy}</div>'
-
-if dmg_hero is not None:
-    dmg_html += f'<div class="dmg-number dmg-hero" style="left:22%;bottom:105px">-{dmg_hero}</div>'
-
-# Stun effect
-stun_html = ""
-if display_enemy and display_enemy.get('stunned'):
-    stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
-
-# Enemy render
-enemy_html = ""
-
-if display_enemy:
-    enemy_name = display_enemy.get("name", "Inimigo")
-    enemy_sprite = display_enemy.get("sprite", "👹")
-    enemy_hp = display_enemy.get("hp", 0)
-    enemy_max_hp = display_enemy.get("max_hp", 1)
-
-    enemy_hp_pct = enemy_hp / enemy_max_hp if enemy_max_hp > 0 else 0
-
-    enemy_html = f"""
-    <div class="arena-hp-row">
-      <span class="ahp-label" style="color:#8a5050">👹 {enemy_name}</span>
-      <div class="ahp-bar">
-        <div class="ahp-fill-enemy" style="width:{enemy_hp_pct*100:.1f}%"></div>
+    st.markdown(f"""
+    <div class="arena-wrap {anim_cls}">
+      <div class="arena-hp-row">
+        <span class="ahp-label">❤️ {ss.hero_class}</span>
+        <div class="ahp-bar"><div class="ahp-fill-hero" style="width:{hero_hp_pct*100:.1f}%"></div></div>
+        <span class="ahp-val">{ss.hp}/{ss.max_hp}</span>
       </div>
-      <span class="ahp-val">{enemy_hp}/{enemy_max_hp}</span>
-    </div>
-
-    <div class="enemy-sprite-wrap">
-      <div class="sprite sprite-enemy" style="transform:scaleX(-1)">
-        {enemy_sprite}
+      {enemy_section}
+      <div class="vs-badge">VS</div>
+      <div class="hero-sprite-wrap">
+        <div class="sprite sprite-hero">{hero_sprite}</div>
+        <div class="hero-sprite-label">{ss.hero_class}</div>
       </div>
-      <div class="enemy-sprite-label">
-        {enemy_name}
-      </div>
+      <div class="event-flash"></div>
+      {dmg_html}
+      {stun_html}
     </div>
-    """
+    """, unsafe_allow_html=True)
 
-st.markdown(f"""
-<div class="arena-wrap {anim_cls}">
-  <div class="arena-hp-row">
-    <span class="ahp-label">❤️ {ss.hero_class}</span>
-    <div class="ahp-bar">
-      <div class="ahp-fill-hero" style="width:{hero_hp_pct*100:.1f}%"></div>
-    </div>
-    <span class="ahp-val">{ss.hp}/{ss.max_hp}</span>
-  </div>
+    # Clear anim state so it runs only once per action
+    ss.arena_anim      = ANIM_NONE
+    ss.arena_dmg_hero  = None
+    ss.arena_dmg_enemy = None
+    ss.arena_dmg_kind  = ""
+    if not enemy:
+        ss['dying_enemy'] = None
 
-  {enemy_html}
-
-  <div class="vs-badge">VS</div>
-
-  <div class="hero-sprite-wrap">
-    <div class="sprite sprite-hero">{hero_sprite}</div>
-    <div class="hero-sprite-label">{ss.hero_class}</div>
-  </div>
-
-  <div class="event-flash"></div>
-  {dmg_html}
-  {stun_html}
-</div>
-""", unsafe_allow_html=True)
-
-   # Clear anim state so it runs only once per action
-ss.arena_anim      = ANIM_NONE
-ss.arena_dmg_hero  = None
-ss.arena_dmg_enemy = None
-ss.arena_dmg_kind  = ""
-
-if not enemy:
-    ss['dying_enemy'] = None
 
 # ============================================================
 # ████████  RENDER MENU  ████████
