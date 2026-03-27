@@ -1041,13 +1041,12 @@ def render_menu():
     st.markdown("<div class='castle-title'>Dark Castle</div>", unsafe_allow_html=True)
     st.markdown("<div class='castle-subtitle'>✦ Ascensão ✦</div>", unsafe_allow_html=True)
     st.markdown("""
-    <div class="lore-card">
-      <span class="lore-title">📜 A Profecia</span>
-      O Castelo das Sombras ergueu-se sobre os ossos de mil guerreiros.
-      Cinco andares. Cinco horrores. No topo, o trono do Rei Eterno aguarda
-      aquele que sobreviver. Nenhum sobreviveu. Ainda.
-    </div>
-    """, unsafe_allow_html=True)
+<div class="lore-card">
+  <span class="lore-title">📜 A Profecia</span>
+  O Castelo das Sombras ergueu-se sobre os ossos de mil guerreiros.
+  Cinco andares. Cinco horrores. No topo, o trono do Rei Eterno aguarda
+  aquele que sobreviver. Nenhum sobreviveu. Ainda.
+</div>""", unsafe_allow_html=True)
 
     st.markdown("<div class='section-hdr'>Escolha sua linhagem</div>", unsafe_allow_html=True)
 
@@ -1082,28 +1081,27 @@ def render_hero_panel():
     fury   = '<span class="fury-badge">⚡ FÚRIA</span>' if is_fury else ""
 
     st.markdown(f"""
-    <div class="hero-3d">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()} {fury}</span>
-        <span class="hero-gold">💰 {ss.gold}G</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">❤️ VIDA</span>
-        {render_bar(hp_pct,'hp')}
-        <span class="stat-val">{ss.hp}/{ss.max_hp}</span>
-      </div>
-      <div class="stat-row">
-        <span class="stat-label">🔮 MANA</span>
-        {render_bar(mp_pct,'mp')}
-        <span class="stat-val">{ss.mana}/{ss.max_mana}</span>
-      </div>
-      <div class="equip-row">
-        <span>⚔️ <span class="equip-val" style="color:{w_col}">{ss.weapon['name']} +{ss.weapon['atk']}</span></span>
-        <span>🛡️ <span class="equip-val" style="color:{a_col}">{ss.armor['name']} +{ss.armor['def']}</span></span>
-        <span style="margin-left:auto;color:#5a4030;font-size:.68rem">🏆 {ss.total_kills} abatidos</span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+<div class="hero-3d">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()} {fury}</span>
+    <span class="hero-gold">💰 {ss.gold}G</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">❤️ VIDA</span>
+    {render_bar(hp_pct,'hp')}
+    <span class="stat-val">{ss.hp}/{ss.max_hp}</span>
+  </div>
+  <div class="stat-row">
+    <span class="stat-label">🔮 MANA</span>
+    {render_bar(mp_pct,'mp')}
+    <span class="stat-val">{ss.mana}/{ss.max_mana}</span>
+  </div>
+  <div class="equip-row">
+    <span>⚔️ <span class="equip-val" style="color:{w_col}">{ss.weapon['name']} +{ss.weapon['atk']}</span></span>
+    <span>🛡️ <span class="equip-val" style="color:{a_col}">{ss.armor['name']} +{ss.armor['def']}</span></span>
+    <span style="margin-left:auto;color:#5a4030;font-size:.68rem">🏆 {ss.total_kills} abatidos</span>
+  </div>
+</div>""", unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1120,16 +1118,16 @@ def render_combat():
 
     prog = ss.kills / ss.kills_needed
     st.markdown(f"""
-    <div style="margin-bottom:12px">
-      <div style="font-size:.68rem;color:#5a4030;letter-spacing:.1em;margin-bottom:4px">
-        PROGRESSO DO ANDAR — {ss.kills}/{ss.kills_needed} abates
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-        <div style="width:{prog*100:.0f}%;height:100%;
-          background:linear-gradient(90deg,#3a7a3a,#00ff88);
-          box-shadow:0 0 8px rgba(0,255,136,.5);border-radius:3px;transition:width .4s"></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
+<div style="margin-bottom:12px">
+  <div style="font-size:.68rem;color:#5a4030;letter-spacing:.1em;margin-bottom:4px">
+    PROGRESSO DO ANDAR — {ss.kills}/{ss.kills_needed} abates
+  </div>
+  <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
+    <div style="width:{prog*100:.0f}%;height:100%;
+      background:linear-gradient(90deg,#3a7a3a,#00ff88);
+      box-shadow:0 0 8px rgba(0,255,136,.5);border-radius:3px;transition:width .4s"></div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
     if ss.enemy:
         en = ss.enemy
@@ -1137,11 +1135,11 @@ def render_combat():
 
         stun_tag = '<span class="stun-tag">⭐ ATORDOADO</span>' if en.get('stunned') else ""
         st.markdown(f"""<div class="enemy-stats-bar">
-          <span>{en['name']}</span>
-          <span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span>
-          <span>⚔️ {en['atk']} ATK</span>
-          {stun_tag}
-        </div>""", unsafe_allow_html=True)
+<span>{en['name']}</span>
+<span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span>
+<span>⚔️ {en['atk']} ATK</span>
+{stun_tag}
+</div>""", unsafe_allow_html=True)
 
         c1, c2 = st.columns(2)
         with c1:
@@ -1160,8 +1158,8 @@ def render_combat():
             }
             with c2:
                 st.markdown(f"""<div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.1);
-                  border-radius:8px;padding:10px;text-align:center;font-size:.65rem;color:#5a4030">
-                  {skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
+border-radius:8px;padding:10px;text-align:center;font-size:.65rem;color:#5a4030">
+{skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
     else:
         render_arena(None)
         if st.button("👣 EXPLORAR A SALA", key="btn_explore"):
@@ -1189,16 +1187,16 @@ def render_inventory():
     w_col = rarity_color(ss.weapon.get('rarity','comum'))
     a_col = rarity_color(ss.armor.get('rarity','comum'))
     st.markdown(f"""
-    <div class="inv-item">
-      <span style="font-size:1.2rem">⚔️</span>
-      <div><div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div>
-        <div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div></div>
-    </div>
-    <div class="inv-item">
-      <span style="font-size:1.2rem">🛡️</span>
-      <div><div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div>
-        <div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div></div>
-    </div>""", unsafe_allow_html=True)
+<div class="inv-item">
+  <span style="font-size:1.2rem">⚔️</span>
+  <div><div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div>
+    <div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div></div>
+</div>
+<div class="inv-item">
+  <span style="font-size:1.2rem">🛡️</span>
+  <div><div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div>
+    <div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div></div>
+</div>""", unsafe_allow_html=True)
 
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Mochila</div>", unsafe_allow_html=True)
     if not ss.inventory:
@@ -1212,12 +1210,12 @@ def render_inventory():
         icon    = "⚔️" if item['type']=='weapon' else "🛡️"
         rare_c  = "rare" if r in ('raro','lendário') else ""
         st.markdown(f"""
-        <div class="inv-item {rare_c}">
-          <span style="font-size:1.1rem">{icon}</span>
-          <div style="flex:1"><div class="inv-name" style="color:{col}">{item['name']}</div>
-            <div class="inv-attr">{attr} · {r.upper()}</div></div>
-          <div class="inv-val">⚖️ {item.get('value',0)}G</div>
-        </div>""", unsafe_allow_html=True)
+<div class="inv-item {rare_c}">
+  <span style="font-size:1.1rem">{icon}</span>
+  <div style="flex:1"><div class="inv-name" style="color:{col}">{item['name']}</div>
+    <div class="inv-attr">{attr} · {r.upper()}</div></div>
+  <div class="inv-val">⚖️ {item.get('value',0)}G</div>
+</div>""", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             if st.button("Equipar", key=f"equip_{i}"):
@@ -1264,13 +1262,13 @@ def render_market():
                    f'padding:1px 6px;border-radius:8px;font-weight:700">{r.upper()}</span>'
                    if r != "comum" else "")
         st.markdown(f"""
-        <div class="mkt-item {rare_c}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div class="mkt-name" style="color:{col}">{icon} {item['name']} {badge}</div>
-            <div class="price-tag">💰 {item['price']}G</div>
-          </div>
-          <div class="mkt-sub">{attr}</div>
-        </div>""", unsafe_allow_html=True)
+<div class="mkt-item {rare_c}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div class="mkt-name" style="color:{col}">{icon} {item['name']} {badge}</div>
+    <div class="price-tag">💰 {item['price']}G</div>
+  </div>
+  <div class="mkt-sub">{attr}</div>
+</div>""", unsafe_allow_html=True)
         if st.button(f"Comprar {item['name']}", key=f"buy_{i}"):
             if ss.gold >= item['price']:
                 ss.gold -= item['price']; ss.inventory.append(dict(item)); ss.market_stock.pop(i)
@@ -1327,18 +1325,18 @@ def render_gameover():
     render_arena(None)
 
     st.markdown(f"""
-    <div class="gameover-wrap">
-      <div class="gameover-title">Game Over</div>
-      <div style="font-family:'Cinzel',serif;color:#7a4040;font-size:.82rem;margin:8px 0 20px">
-        O castelo devorou mais uma alma.
-      </div>
-      <div class="gameover-stats">
-        <div>🏰 Andar alcançado: <b style="color:var(--gold)">{ss.floor}</b></div>
-        <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
-        <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
-        <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
+<div class="gameover-wrap">
+  <div class="gameover-title">Game Over</div>
+  <div style="font-family:'Cinzel',serif;color:#7a4040;font-size:.82rem;margin:8px 0 20px">
+    O castelo devorou mais uma alma.
+  </div>
+  <div class="gameover-stats">
+    <div>🏰 Andar alcançado: <b style="color:var(--gold)">{ss.floor}</b></div>
+    <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
+    <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
+    <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
     if st.button("🔄 RECOMEÇAR A JORNADA"):
         reset_state(); st.rerun()
@@ -1350,18 +1348,18 @@ def render_gameover():
 def render_victory():
     ss = st.session_state
     st.markdown(f"""
-    <div class="gameover-wrap">
-      <div style="font-family:'UnifrakturMaguntia',cursive;font-size:3.6rem;
-        color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">Vitória!</div>
-      <div style="font-family:'Cinzel',serif;color:#8a7040;font-size:.82rem;margin:8px 0 20px">
-        O trono do Rei Eterno é seu. O castelo inclina sua coroa.
-      </div>
-      <div class="gameover-stats">
-        <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
-        <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
-        <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
-      </div>
-    </div>""", unsafe_allow_html=True)
+<div class="gameover-wrap">
+  <div style="font-family:'UnifrakturMaguntia',cursive;font-size:3.6rem;
+    color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">Vitória!</div>
+  <div style="font-family:'Cinzel',serif;color:#8a7040;font-size:.82rem;margin:8px 0 20px">
+    O trono do Rei Eterno é seu. O castelo inclina sua coroa.
+  </div>
+  <div class="gameover-stats">
+    <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
+    <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
+    <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
+  </div>
+</div>""", unsafe_allow_html=True)
 
     if st.button("🏆 JOGAR NOVAMENTE"):
         reset_state(); st.rerun()
