@@ -897,7 +897,7 @@ def render_arena(enemy):
           <span class="hp-lbl" style="color:#8a5050;text-align:right">{enemy_name_clean}</span>
           <div class="hp-track"><div class="hp-fill enemy-fill" style="width:{ep:.1f}%"></div></div>
           <span class="hp-val">{ehp_cur}/{ehp_max}</span>
-      
+        </div>
         <div class="sprite-wrap enemy-wrap">
           <div class="px-sprite sprite-enemy" style="box-shadow:{enemy_shadow}"></div>
           <div class="sprite-lbl" style="color:#e74c3c">{enemy_name_clean}</div>
