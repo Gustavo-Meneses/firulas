@@ -534,6 +534,7 @@ def build_stat_bars(stats: dict) -> str:
             f'<span class="cs-stat-label">{icons.get(stat_name,"")} {stat_name}</span>'
             f'<div class="cs-stat-bar-bg">'
             f'<div class="cs-stat-bar-fill" style="width:{pct}%"></div>'
+            f'</div></div>'
         )
     return html
 
@@ -1124,42 +1125,17 @@ def render_combat():
       </div>
     </div>""", unsafe_allow_html=True)
 
-    def render_arena(en):
-    # Lógica do Stun
-    stun_html = '<div class="stun-tag">⭐ ATORDOADO</div>' if en.get('stunned') else ""
-    
-    # Montagem do HTML Único
-    html_content = f"""
-    <style>
-        /* Seus estilos de Pixel Art e Arena aqui */
-        .enemy-stats-bar {{
-            display: flex;
-            justify-content: space-around;
-            background: rgba(0,0,0,0.5);
-            padding: 10px;
-            border-radius: 8px;
-            color: white;
-            font-family: 'Courier New', Courier, monospace;
-            margin-top: 10px;
-        }}
-        .stun-tag {{ color: #ffd700; font-weight: bold; }}
-    </style>
+    if ss.enemy:
+        en = ss.enemy
+        render_arena(en)
 
-    <div class="arena-container">
-        <div class="sprite-wrap">
-             </div>
-
-        <div class="enemy-stats-bar">
-            <span>👹 {en['name']}</span>
-            <span>❤️ {max(0, en['hp'])}/{en['max_hp']}</span>
-            <span>⚔️ {en['atk']} ATK</span>
-            {stun_html}
-        </div>
-    </div>
-    """
-    
-    # Renderização final sem escape do Streamlit
-    components.html(html_content, height=400)
+        stun_tag = '<span class="stun-tag">⭐ ATORDOADO</span>' if en.get('stunned') else ""
+        st.markdown(f"""<div class="enemy-stats-bar">
+          <span>{en['name']}</span>
+          <span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span>
+          <span>⚔️ {en['atk']} ATK</span>
+          {stun_tag}
+        </div>""", unsafe_allow_html=True)
 
         c1, c2 = st.columns(2)
         with c1:
