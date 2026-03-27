@@ -763,23 +763,29 @@ if display_enemy:
     """
 
     st.markdown(f"""
-    <div class="arena-wrap {anim_cls}">
-      <div class="arena-hp-row">
-        <span class="ahp-label">❤️ {ss.hero_class}</span>
-        <div class="ahp-bar"><div class="ahp-fill-hero" style="width:{hero_hp_pct*100:.1f}%"></div></div>
-        <span class="ahp-val">{ss.hp}/{ss.max_hp}</span>
-      </div>
-      {enemy_section}
-      <div class="vs-badge">VS</div>
-      <div class="hero-sprite-wrap">
-        <div class="sprite sprite-hero">{hero_sprite}</div>
-        <div class="hero-sprite-label">{ss.hero_class}</div>
-      </div>
-      <div class="event-flash"></div>
-      {dmg_html}
-      {stun_html}
+<div class="arena-wrap {anim_cls}">
+  <div class="arena-hp-row">
+    <span class="ahp-label">❤️ {ss.hero_class}</span>
+    <div class="ahp-bar">
+      <div class="ahp-fill-hero" style="width:{hero_hp_pct*100:.1f}%"></div>
     </div>
-    """, unsafe_allow_html=True)
+    <span class="ahp-val">{ss.hp}/{ss.max_hp}</span>
+  </div>
+
+  {enemy_html}
+
+  <div class="vs-badge">VS</div>
+
+  <div class="hero-sprite-wrap">
+    <div class="sprite sprite-hero">{hero_sprite}</div>
+    <div class="hero-sprite-label">{ss.hero_class}</div>
+  </div>
+
+  <div class="event-flash"></div>
+  {dmg_html}
+  {stun_html}
+</div>
+""", unsafe_allow_html=True)
 
     # Clear anim state so it runs only once per action
     ss.arena_anim      = ANIM_NONE
