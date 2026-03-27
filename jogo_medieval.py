@@ -741,15 +741,28 @@ def render_arena(enemy):
     if display_enemy and display_enemy.get('stunned'):
         stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
 
+display_enemy = ss.get("enemy", None)
+
+# Garantir que existe inimigo
+display_enemy = ss.get("enemy", None)
+
 enemy_html = ""
+
 if display_enemy:
+    enemy_name = display_enemy.get("name", "Inimigo")
+    enemy_sprite = display_enemy.get("sprite", "👹")
+    enemy_hp = display_enemy.get("hp", 0)
+    enemy_max_hp = display_enemy.get("max_hp", 1)
+
+    enemy_hp_pct = enemy_hp / enemy_max_hp if enemy_max_hp > 0 else 0
+
     enemy_html = f"""
     <div class="arena-hp-row">
-      <span class="ahp-label" style="color:#8a5050">👹 {enemy_name.split(' ',1)[-1] if ' ' in enemy_name else enemy_name}</span>
+      <span class="ahp-label" style="color:#8a5050">👹 {enemy_name}</span>
       <div class="ahp-bar">
         <div class="ahp-fill-enemy" style="width:{enemy_hp_pct*100:.1f}%"></div>
       </div>
-      <span class="ahp-val">{max(0,display_enemy['hp'])}/{display_enemy['max_hp']}</span>
+      <span class="ahp-val">{enemy_hp}/{enemy_max_hp}</span>
     </div>
 
     <div class="enemy-sprite-wrap">
@@ -762,7 +775,7 @@ if display_enemy:
     </div>
     """
 
-    st.markdown(f"""
+st.markdown(f"""
 <div class="arena-wrap {anim_cls}">
   <div class="arena-hp-row">
     <span class="ahp-label">❤️ {ss.hero_class}</span>
