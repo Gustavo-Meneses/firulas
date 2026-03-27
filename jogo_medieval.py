@@ -800,14 +800,14 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-    # Clear anim state so it runs only once per action
-    ss.arena_anim      = ANIM_NONE
-    ss.arena_dmg_hero  = None
-    ss.arena_dmg_enemy = None
-    ss.arena_dmg_kind  = ""
-    if not enemy:
-        ss['dying_enemy'] = None
+   # Clear anim state so it runs only once per action
+ss.arena_anim      = ANIM_NONE
+ss.arena_dmg_hero  = None
+ss.arena_dmg_enemy = None
+ss.arena_dmg_kind  = ""
 
+if not enemy:
+    ss['dying_enemy'] = None
 
 # ============================================================
 # ████████  RENDER MENU  ████████
