@@ -280,27 +280,33 @@ hr{border-color:var(--border) !important;margin:12px 0 !important;}
   font-size:.72rem;color:#8a5050;display:flex;gap:14px;align-items:center;}
 .stun-tag{color:#ffcc00;font-size:.65rem;margin-left:auto;}
 
-/* ── BUTTON VARIANTS ── */
-.btn-attack div[data-testid="stButton"]>button{
+/* ── BUTTONS (GLOBAL DARK FANTASY) ── */
+div[data-testid="stButton"]>button{
+  background:linear-gradient(180deg,#3a2a08 0%,#241a05 50%,#160f03 100%) !important;
+  color:var(--gold-lt) !important;border:1px solid rgba(201,168,76,.3) !important;
+  box-shadow:0 4px 0 #0a0601,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(201,168,76,.2) !important;
+  font-family:'Cinzel',serif !important;text-transform:uppercase;font-size:.72rem !important;}
+div[data-testid="stButton"]>button:hover{transform:translateY(1px) !important;
+  box-shadow:0 3px 0 #0a0601,0 4px 6px rgba(0,0,0,.6) !important;}
+
+/* Special Colors */
+div[data-testid="stButton"]>button:has(span:contains("ATACAR")),
+div[data-testid="stButton"]>button:has(span:contains("RECOMEÇAR")) {
   background:linear-gradient(180deg,#6b1a1a 0%,#3d0e0e 50%,#2a0808 100%) !important;
   color:#ff9999 !important;border:1px solid rgba(192,57,43,.5) !important;
   box-shadow:0 4px 0 #1a0404,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,100,100,.2) !important;}
-.btn-attack div[data-testid="stButton"]>button:hover{transform:translateY(1px) !important;
-  box-shadow:0 3px 0 #1a0404,0 4px 6px rgba(0,0,0,.6) !important;}
-.btn-magic div[data-testid="stButton"]>button{
+
+div[data-testid="stButton"]>button:has(span:contains("MAGIA")),
+div[data-testid="stButton"]>button:has(span:contains("Mana")) {
   background:linear-gradient(180deg,#0d2a4a 0%,#071a30 50%,#040f1c 100%) !important;
-  color:#5dade2 !important;border:1px solid rgba(41,128,185,.4) !important;
-  box-shadow:0 4px 0 #020810,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(100,180,255,.15) !important;}
-.btn-explore div[data-testid="stButton"]>button{
+  color:#5dade2 !important;border:1px solid rgba(41,128,185,.4) !important;}
+
+div[data-testid="stButton"]>button:has(span:contains("EXPLORAR")) {
   background:linear-gradient(180deg,#1a3a1a 0%,#0d200d 50%,#071407 100%) !important;
   color:#00ff88 !important;border:1px solid rgba(0,200,100,.3) !important;
-  box-shadow:0 4px 0 #030a03,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(0,255,100,.1) !important;
   font-size:.8rem !important;padding:14px 8px !important;}
-.btn-gold div[data-testid="stButton"]>button{
-  background:linear-gradient(180deg,#3a2a08 0%,#241a05 50%,#160f03 100%) !important;
-  color:var(--gold-lt) !important;border:1px solid rgba(201,168,76,.3) !important;
-  box-shadow:0 4px 0 #0a0601,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(201,168,76,.2) !important;}
-.btn-danger div[data-testid="stButton"]>button{
+
+div[data-testid="stButton"]>button:has(span:contains("Vender")) {
   background:linear-gradient(180deg,#4a0a0a 0%,#2a0505 100%) !important;
   color:#ff6b6b !important;border:1px solid rgba(192,57,43,.4) !important;}
 
@@ -1139,17 +1145,13 @@ def render_combat():
 
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown('<div class="btn-attack">', unsafe_allow_html=True)
             if st.button("⚔️ ATACAR", key="btn_attack"):
                 player_attack(magic=False)
-            st.markdown('</div>', unsafe_allow_html=True)
 
         if ss.hero_class == "Mago":
             with c2:
-                st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
                 if st.button("🔥 MAGIA  (15 Mana)", key="btn_magic"):
                     player_attack(magic=True)
-                st.markdown('</div>', unsafe_allow_html=True)
         else:
             skill_map = {
                 "Guerreiro": "🛡️ BLOQUEIO  passivo 20%",
@@ -1162,7 +1164,6 @@ def render_combat():
                   {skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
     else:
         render_arena(None)
-        st.markdown('<div class="btn-explore">', unsafe_allow_html=True)
         if st.button("👣 EXPLORAR A SALA", key="btn_explore"):
             if random.random() < 0.50:
                 gain = 35 + ss.floor * 12 + random.randint(0, 18)
@@ -1177,7 +1178,6 @@ def render_combat():
                 ss.enemy = spawn_enemy(ss.floor)
                 log(f"⚠️ {ss.enemy['name']} aparece das sombras!", "crit")
             st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1220,18 +1220,14 @@ def render_inventory():
         </div>""", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
-            st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
             if st.button("Equipar", key=f"equip_{i}"):
                 old = ss[item['type']]; ss[item['type']] = item; ss.inventory[i] = old
                 log(f"🔄 Equipou: {item['name']}!", ""); st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
         with c2:
-            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
             sv = item.get('value', 10)
             if st.button(f"Vender +{sv}G", key=f"sell_inv_{i}"):
                 ss.gold += sv; ss.inventory.pop(i)
                 log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1245,21 +1241,17 @@ def render_market():
     st.markdown("<div class='section-hdr'>Poções</div>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button("❤️ Vida +50 HP\n(40G)", key="pot_hp"):
             if ss.gold >= 40:
                 ss.gold -= 40; healed = min(ss.max_hp, ss.hp+50)-ss.hp; ss.hp += healed
                 log(f"❤️ Poção de vida: +{healed} HP", "loot"); st.rerun()
             else: st.warning("Ouro insuficiente!")
-        st.markdown('</div>', unsafe_allow_html=True)
     with c2:
-        st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
         if st.button("🔮 Mana +40\n(40G)", key="pot_mp"):
             if ss.gold >= 40:
                 ss.gold -= 40; restored = min(ss.max_mana, ss.mana+40)-ss.mana; ss.mana += restored
                 log(f"🔮 Poção de mana: +{restored} Mana", "magic"); st.rerun()
             else: st.warning("Ouro insuficiente!")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Equipamentos</div>", unsafe_allow_html=True)
     for i, item in enumerate(ss.market_stock):
@@ -1279,7 +1271,6 @@ def render_market():
           </div>
           <div class="mkt-sub">{attr}</div>
         </div>""", unsafe_allow_html=True)
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button(f"Comprar {item['name']}", key=f"buy_{i}"):
             if ss.gold >= item['price']:
                 ss.gold -= item['price']; ss.inventory.append(dict(item)); ss.market_stock.pop(i)
@@ -1287,7 +1278,6 @@ def render_market():
                 if not ss.market_stock: ss.market_stock = generate_market()
                 st.rerun()
             else: st.warning("Ouro insuficiente!")
-        st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Vender Inventário</div>", unsafe_allow_html=True)
     if not ss.inventory:
@@ -1295,11 +1285,9 @@ def render_market():
     else:
         for i, item in enumerate(ss.inventory):
             sv = item.get('value', 10)
-            st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
             if st.button(f"Vender {item['name']} (+{sv}G)", key=f"sell_mkt_{i}"):
                 ss.gold += sv; ss.inventory.pop(i)
                 log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
-            st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1352,10 +1340,8 @@ def render_gameover():
       </div>
     </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
     if st.button("🔄 RECOMEÇAR A JORNADA"):
         reset_state(); st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1377,10 +1363,8 @@ def render_victory():
       </div>
     </div>""", unsafe_allow_html=True)
 
-    st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
     if st.button("🏆 JOGAR NOVAMENTE"):
         reset_state(); st.rerun()
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ============================================================
