@@ -13,461 +13,410 @@ st.set_page_config(
 )
 
 # ============================================================
-# CSS — VISUAL 3D / DARK FANTASY
+# CSS — VISUAL 3D / DARK FANTASY + ANIMAÇÕES DE COMBATE
 # ============================================================
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@400;600;700&family=UnifrakturMaguntia&display=swap');
 
-/* ── BASE ── */
 :root {
-  --gold:    #c9a84c;
-  --gold-lt: #f0d080;
-  --red:     #c0392b;
-  --red-lt:  #e74c3c;
-  --blue:    #2980b9;
-  --cyan:    #00e5ff;
-  --green:   #00ff88;
-  --bg:      #0a0608;
-  --bg2:     #120d10;
-  --bg3:     #1c1520;
-  --border:  #3a2a30;
-  --text:    #d4b896;
-  --text-lt: #f0e0c8;
-  --shadow:  rgba(0,0,0,0.8);
+  --gold:#c9a84c; --gold-lt:#f0d080; --red:#c0392b; --red-lt:#e74c3c;
+  --blue:#2980b9; --cyan:#00e5ff; --green:#00ff88;
+  --bg:#0a0608; --bg2:#120d10; --bg3:#1c1520; --border:#3a2a30;
+  --text:#d4b896; --text-lt:#f0e0c8; --shadow:rgba(0,0,0,0.8);
 }
 
-html, body, [data-testid="stAppViewContainer"] {
-  background-color: var(--bg) !important;
-  color: var(--text);
-  font-family: 'Cinzel', serif;
+html,body,[data-testid="stAppViewContainer"] {
+  background-color:var(--bg) !important; color:var(--text); font-family:'Cinzel',serif;
 }
-
 [data-testid="stAppViewContainer"] {
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(100,20,20,0.18) 0%, transparent 70%),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(255,255,255,0.012) 2px,
-      rgba(255,255,255,0.012) 4px
-    );
+    radial-gradient(ellipse 80% 60% at 50% 0%,rgba(100,20,20,.18) 0%,transparent 70%),
+    repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.012) 2px,rgba(255,255,255,.012) 4px);
+}
+#MainMenu,footer,header,[data-testid="stToolbar"],
+[data-testid="stDecoration"],[data-testid="stStatusWidget"]{display:none !important;}
+[data-testid="block-container"]{padding:1.5rem 1rem 3rem;max-width:820px;margin:auto;}
+
+.stTabs [data-baseweb="tab-list"]{gap:4px;background:var(--bg2);border-radius:8px;padding:4px;}
+.stTabs [data-baseweb="tab"]{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.08em;
+  color:var(--text);background:transparent;border-radius:6px;padding:8px 14px;}
+.stTabs [aria-selected="true"]{background:linear-gradient(135deg,#3a1a1a,#2a1020) !important;
+  color:var(--gold) !important;box-shadow:inset 0 1px 0 rgba(201,168,76,.3),0 0 12px rgba(201,168,76,.15);}
+.stTabs [data-baseweb="tab-panel"]{padding-top:1rem;}
+
+div[data-testid="stButton"]>button{font-family:'Cinzel',serif !important;font-weight:700 !important;
+  letter-spacing:.08em !important;text-transform:uppercase;font-size:.72rem !important;
+  width:100% !important;padding:10px 8px !important;border-radius:6px !important;transition:all .15s ease !important;}
+hr{border-color:var(--border) !important;margin:12px 0 !important;}
+.stProgress>div>div>div>div{background:linear-gradient(90deg,#8b0000,#c0392b,#e74c3c) !important;box-shadow:0 0 8px rgba(231,76,60,.6);}
+.stProgress>div>div{background:rgba(255,255,255,.07) !important;border-radius:4px;}
+
+/* ── TITLE ── */
+.castle-title{font-family:'UnifrakturMaguntia',cursive;font-size:clamp(2.6rem,8vw,4.8rem);
+  text-align:center;line-height:1.1;margin:0 0 4px;
+  background:linear-gradient(180deg,#f0d080 0%,#c9a84c 40%,#7a5a20 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 2px 6px rgba(201,168,76,.5)) drop-shadow(0 4px 18px rgba(0,0,0,.9));letter-spacing:.04em;}
+.castle-subtitle{font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.35em;
+  text-transform:uppercase;color:#7a6040;text-align:center;margin-bottom:28px;}
+
+/* ── FLOOR 3D ── */
+.floor-3d{display:inline-block;font-family:'Cinzel Decorative',serif;font-size:1.05rem;
+  font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#0a0608;
+  background:linear-gradient(180deg,#f0d080 0%,#c9a84c 50%,#7a5a20 100%);
+  padding:8px 28px;border-radius:40px;
+  box-shadow:0 2px 0 #3a2a00,0 4px 0 #2a1a00,0 6px 0 #1a0a00,0 8px 0 rgba(0,0,0,.5),
+             0 12px 24px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,240,.5);
+  transform:perspective(200px) rotateX(8deg);text-shadow:0 1px 2px rgba(255,255,200,.4);}
+.floor-wrapper{text-align:center;margin-bottom:20px;}
+
+/* ── HERO PANEL ── */
+.hero-3d{background:linear-gradient(135deg,rgba(60,20,20,.95) 0%,rgba(25,12,18,.95) 100%);
+  border:1px solid rgba(201,168,76,.3);border-radius:12px;padding:18px 20px;
+  margin-bottom:16px;position:relative;overflow:hidden;
+  box-shadow:0 1px 0 rgba(201,168,76,.2) inset,0 -1px 0 rgba(0,0,0,.6) inset,
+             6px 6px 20px rgba(0,0,0,.7),-1px -1px 0 rgba(201,168,76,.1);}
+.hero-3d::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,168,76,.06) 0%,transparent 60%);pointer-events:none;}
+.hero-3d::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.5),transparent);}
+.hero-name{font-family:'Cinzel Decorative',serif;font-size:.95rem;font-weight:700;
+  letter-spacing:.1em;color:var(--gold-lt);text-shadow:0 0 12px rgba(201,168,76,.5);}
+.hero-gold{font-family:'Cinzel',serif;font-weight:700;color:var(--gold-lt);font-size:.95rem;}
+.stat-row{display:flex;align-items:center;gap:10px;margin:6px 0;}
+.stat-label{font-size:.72rem;letter-spacing:.1em;color:#8a7060;min-width:50px;}
+.bar-wrap{flex:1;height:12px;background:rgba(255,255,255,.07);border-radius:6px;overflow:hidden;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.05);}
+.bar-fill-hp{height:100%;border-radius:6px;
+  background:linear-gradient(90deg,#7b0000,#c0392b 60%,#ff6b6b);
+  box-shadow:0 0 8px rgba(192,57,43,.7);transition:width .4s ease;}
+.bar-fill-mp{height:100%;border-radius:6px;
+  background:linear-gradient(90deg,#003070,#2980b9 60%,#5dade2);
+  box-shadow:0 0 8px rgba(41,128,185,.7);transition:width .4s ease;}
+.stat-val{font-size:.76rem;color:var(--text);min-width:60px;text-align:right;}
+.equip-row{margin-top:12px;padding-top:10px;border-top:1px solid rgba(201,168,76,.15);
+  display:flex;gap:16px;font-size:.72rem;color:#8a7060;}
+.equip-val{color:var(--text);font-weight:600;}
+.fury-badge{display:inline-block;background:linear-gradient(135deg,#8b0000,#c0392b);
+  color:#fff;font-size:.62rem;font-weight:700;letter-spacing:.12em;
+  padding:2px 8px;border-radius:10px;box-shadow:0 0 10px rgba(192,57,43,.8);
+  animation:pulse-red 1s ease-in-out infinite;}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 8px rgba(192,57,43,.8);}50%{box-shadow:0 0 18px rgba(255,80,80,1);}}
+
+/* ══════════════════════════════════════════
+   ARENA ANIMADA
+══════════════════════════════════════════ */
+.arena-wrap{
+  position:relative;
+  background:linear-gradient(180deg,#0d0508 0%,#1a0a10 60%,#0a0305 100%);
+  border:1px solid rgba(192,57,43,.25);border-radius:14px;
+  padding:20px 16px 16px;margin-bottom:14px;overflow:hidden;
+  box-shadow:0 0 40px rgba(0,0,0,.8),inset 0 0 60px rgba(100,0,0,.08);
+  min-height:200px;
+}
+.arena-wrap::before{content:'';position:absolute;bottom:56px;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.15),rgba(201,168,76,.25),rgba(201,168,76,.15),transparent);}
+.arena-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:54px;
+  background:linear-gradient(0deg,rgba(10,3,8,.9),transparent);pointer-events:none;}
+
+.sprite{font-size:3.4rem;display:inline-block;line-height:1;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));transform-origin:bottom center;}
+
+.hero-sprite-wrap{position:absolute;bottom:56px;left:12%;
+  display:flex;flex-direction:column;align-items:center;gap:4px;}
+.hero-sprite-label{font-family:'Cinzel Decorative',serif;font-size:.6rem;color:var(--gold);
+  letter-spacing:.08em;text-shadow:0 0 8px rgba(201,168,76,.5);}
+
+.enemy-sprite-wrap{position:absolute;bottom:56px;right:12%;
+  display:flex;flex-direction:column;align-items:center;gap:4px;}
+.enemy-sprite-label{font-family:'Cinzel',serif;font-size:.6rem;color:#e74c3c;
+  letter-spacing:.06em;text-shadow:0 0 8px rgba(231,76,60,.5);}
+
+.arena-hp-row{display:flex;gap:10px;margin-bottom:14px;align-items:center;}
+.ahp-label{font-size:.68rem;color:#8a7060;min-width:44px;}
+.ahp-bar{flex:1;height:10px;background:rgba(255,255,255,.07);border-radius:5px;
+  overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.6);}
+.ahp-fill-hero{height:100%;border-radius:5px;
+  background:linear-gradient(90deg,#7b0000,#c0392b 60%,#e74c3c);
+  box-shadow:0 0 6px rgba(192,57,43,.6);transition:width .5s ease;}
+.ahp-fill-enemy{height:100%;border-radius:5px;
+  background:linear-gradient(90deg,#5a0000,#8b0000 60%,#b00000);
+  box-shadow:0 0 6px rgba(139,0,0,.6);transition:width .5s ease;}
+.ahp-val{font-size:.64rem;color:var(--text);min-width:56px;text-align:right;}
+.vs-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-family:'Cinzel Decorative',serif;font-size:.75rem;color:rgba(201,168,76,.2);
+  letter-spacing:.15em;pointer-events:none;}
+.event-flash{position:absolute;inset:0;border-radius:14px;pointer-events:none;z-index:10;}
+
+/* ── HERO ATTACK ── */
+.anim-hero-attack .sprite-hero{animation:hero-slash .55s ease forwards;}
+@keyframes hero-slash{
+  0%  {transform:translateX(0) scaleX(1) rotate(0deg);}
+  20% {transform:translateX(4px) scaleX(1.08) rotate(-8deg);}
+  45% {transform:translateX(58px) scaleX(1.15) rotate(-15deg);}
+  60% {transform:translateX(52px) scaleX(1) rotate(-5deg);}
+  100%{transform:translateX(0) scaleX(1) rotate(0deg);}
+}
+.anim-hero-attack .event-flash{animation:flash-red .55s ease forwards;}
+@keyframes flash-red{0%,100%{background:transparent;}40%{background:rgba(192,57,43,.18);}50%{background:rgba(255,80,60,.08);}}
+
+/* ── HERO MAGIC ── */
+.anim-hero-magic .sprite-hero{animation:hero-cast .65s ease forwards;}
+@keyframes hero-cast{
+  0%  {transform:translateY(0) scale(1);filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  30% {transform:translateY(-10px) scale(1.12);filter:drop-shadow(0 0 20px rgba(41,128,185,.9)) drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  60% {transform:translateY(-6px) scale(1.08);filter:drop-shadow(0 0 30px rgba(0,229,255,1)) drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  100%{transform:translateY(0) scale(1);filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+}
+.anim-hero-magic .event-flash{animation:flash-blue .65s ease forwards;}
+@keyframes flash-blue{0%,100%{background:transparent;}40%{background:rgba(41,128,185,.2);}55%{background:rgba(0,229,255,.1);}}
+.anim-hero-magic::after{content:'✨';position:absolute;bottom:74px;left:28%;font-size:1.6rem;
+  animation:magic-bolt .55s ease forwards;z-index:5;}
+@keyframes magic-bolt{
+  0%  {transform:translateX(0) scale(.5);opacity:1;}
+  60% {transform:translateX(140px) scale(1.2);opacity:1;}
+  100%{transform:translateX(200px) scale(.3);opacity:0;}
 }
 
-/* hide Streamlit chrome */
-#MainMenu, footer, header, [data-testid="stToolbar"],
-[data-testid="stDecoration"], [data-testid="stStatusWidget"] { display: none !important; }
-[data-testid="block-container"] { padding: 1.5rem 1rem 3rem; max-width: 820px; margin: auto; }
-.stTabs [data-baseweb="tab-list"] { gap: 4px; background: var(--bg2); border-radius: 8px; padding: 4px; }
-.stTabs [data-baseweb="tab"] {
-  font-family: 'Cinzel', serif; font-size: 0.78rem; letter-spacing: .08em;
-  color: var(--text); background: transparent; border-radius: 6px; padding: 8px 14px;
-}
-.stTabs [aria-selected="true"] {
-  background: linear-gradient(135deg, #3a1a1a, #2a1020) !important;
-  color: var(--gold) !important;
-  box-shadow: inset 0 1px 0 rgba(201,168,76,.3), 0 0 12px rgba(201,168,76,.15);
-}
-.stTabs [data-baseweb="tab-panel"] { padding-top: 1rem; }
-
-div[data-testid="stButton"] > button {
-  font-family: 'Cinzel', serif !important;
-  font-weight: 700 !important;
-  letter-spacing: .08em !important;
-  text-transform: uppercase;
-  font-size: 0.72rem !important;
-  width: 100% !important;
-  padding: 10px 8px !important;
-  border-radius: 6px !important;
-  transition: all .2s ease !important;
+/* ── ENEMY HIT ── */
+.anim-enemy-hit .sprite-enemy{animation:enemy-hurt .45s ease forwards;}
+@keyframes enemy-hurt{
+  0%,100%{transform:scaleX(-1);filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  15%    {transform:scaleX(-1) translateX(-6px);filter:drop-shadow(0 0 14px rgba(255,60,60,1)) drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  30%    {transform:scaleX(-1) translateX(5px);}
+  50%    {transform:scaleX(-1) translateX(-4px);}
+  70%    {transform:scaleX(-1) translateX(3px);}
 }
 
-/* divider */
-hr { border-color: var(--border) !important; margin: 12px 0 !important; }
-
-/* progress bar (enemy HP) */
-.stProgress > div > div > div > div {
-  background: linear-gradient(90deg, #8b0000, #c0392b, #e74c3c) !important;
-  box-shadow: 0 0 8px rgba(231,76,60,.6);
-}
-.stProgress > div > div { background: rgba(255,255,255,0.07) !important; border-radius: 4px; }
-
-/* warnings */
-.stWarning { background: rgba(201,168,76,.1) !important; border-color: var(--gold) !important; }
-
-/* ── 3D TITLE ── */
-.castle-title {
-  font-family: 'UnifrakturMaguntia', cursive;
-  font-size: clamp(2.6rem, 8vw, 4.8rem);
-  text-align: center;
-  line-height: 1.1;
-  margin: 0 0 4px;
-  background: linear-gradient(180deg, #f0d080 0%, #c9a84c 40%, #7a5a20 100%);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 6px rgba(201,168,76,.5)) drop-shadow(0 4px 18px rgba(0,0,0,.9));
-  text-shadow: none;
-  letter-spacing: .04em;
-}
-.castle-subtitle {
-  font-family: 'Cinzel', serif;
-  font-size: .82rem; letter-spacing: .35em; text-transform: uppercase;
-  color: #7a6040; text-align: center; margin-bottom: 28px;
+/* ── HERO HIT ── */
+.anim-hero-hit .sprite-hero{animation:hero-hurt .45s ease forwards;}
+@keyframes hero-hurt{
+  0%,100%{transform:translateX(0);filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  15%    {transform:translateX(-8px);filter:drop-shadow(0 0 12px rgba(255,80,60,.9)) drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  30%    {transform:translateX(6px);}
+  50%    {transform:translateX(-5px);}
+  70%    {transform:translateX(3px);}
 }
 
-/* ── 3D FLOOR BADGE ── */
-.floor-3d {
-  display: inline-block;
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 1.05rem; font-weight: 900;
-  letter-spacing: .12em; text-transform: uppercase;
-  color: #0a0608;
-  background: linear-gradient(180deg, #f0d080 0%, #c9a84c 50%, #7a5a20 100%);
-  padding: 8px 28px;
-  border-radius: 40px;
-  box-shadow:
-    0 2px 0 #3a2a00,
-    0 4px 0 #2a1a00,
-    0 6px 0 #1a0a00,
-    0 8px 0 rgba(0,0,0,.5),
-    0 12px 24px rgba(0,0,0,.7),
-    inset 0 1px 0 rgba(255,255,240,.5);
-  transform: perspective(200px) rotateX(8deg);
-  text-shadow: 0 1px 2px rgba(255,255,200,.4);
+/* ── ENEMY DEATH ── */
+.anim-enemy-death .sprite-enemy{animation:enemy-die .9s ease forwards;}
+@keyframes enemy-die{
+  0%  {transform:scaleX(-1) scale(1) translateY(0);opacity:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  20% {transform:scaleX(-1) scale(1.15) translateY(-8px);filter:drop-shadow(0 0 20px rgba(255,60,60,1)) drop-shadow(0 4px 8px rgba(0,0,0,.8));opacity:1;}
+  50% {transform:scaleX(-1) scale(.85) translateY(4px) rotate(15deg);opacity:.7;}
+  80% {transform:scaleX(-1) scale(.4) translateY(18px) rotate(40deg);opacity:.2;}
+  100%{transform:scaleX(-1) scale(0) translateY(24px) rotate(60deg);opacity:0;}
 }
-.floor-wrapper { text-align: center; margin-bottom: 20px; }
+.anim-enemy-death .event-flash{animation:flash-gold-death .9s ease forwards;}
+@keyframes flash-gold-death{0%,100%{background:transparent;}25%{background:rgba(255,60,60,.2);}50%{background:rgba(201,168,76,.15);}}
 
-/* ── 3D HERO PANEL ── */
-.hero-3d {
-  background:
-    linear-gradient(135deg, rgba(60,20,20,.95) 0%, rgba(25,12,18,.95) 100%);
-  border: 1px solid rgba(201,168,76,.3);
-  border-radius: 12px;
-  padding: 18px 20px;
-  margin-bottom: 16px;
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    0 1px 0 rgba(201,168,76,.2) inset,
-    0 -1px 0 rgba(0,0,0,.6) inset,
-    6px 6px 20px rgba(0,0,0,.7),
-    -1px -1px 0 rgba(201,168,76,.1);
+/* ── HERO DEATH ── */
+.anim-hero-death .sprite-hero{animation:hero-die 1.1s ease forwards;}
+@keyframes hero-die{
+  0%  {transform:translateY(0) rotate(0deg) scale(1);opacity:1;}
+  20% {transform:translateY(-10px) rotate(-5deg) scale(1.05);filter:drop-shadow(0 0 20px rgba(255,0,0,.8));}
+  50% {transform:translateY(4px) rotate(-20deg) scale(.95);opacity:.8;}
+  75% {transform:translateY(12px) rotate(-45deg) scale(.7);opacity:.4;}
+  100%{transform:translateY(20px) rotate(-90deg) scale(.3);opacity:0;}
 }
-.hero-3d::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(201,168,76,.06) 0%, transparent 60%);
-  pointer-events: none;
-}
-.hero-3d::after {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201,168,76,.5), transparent);
-}
-.hero-name {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: .95rem; font-weight: 700; letter-spacing: .1em;
-  color: var(--gold-lt);
-  text-shadow: 0 0 12px rgba(201,168,76,.5);
-}
-.hero-gold {
-  font-family: 'Cinzel', serif; font-weight: 700;
-  color: var(--gold-lt); font-size: .95rem;
-}
-.stat-row { display: flex; align-items: center; gap: 10px; margin: 6px 0; }
-.stat-label { font-size: .72rem; letter-spacing: .1em; color: #8a7060; min-width: 50px; }
-.bar-wrap {
-  flex: 1; height: 12px; background: rgba(255,255,255,.07);
-  border-radius: 6px; overflow: hidden;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.05);
-}
-.bar-fill-hp {
-  height: 100%; border-radius: 6px;
-  background: linear-gradient(90deg, #7b0000, #c0392b 60%, #ff6b6b);
-  box-shadow: 0 0 8px rgba(192,57,43,.7);
-  transition: width .4s ease;
-}
-.bar-fill-mp {
-  height: 100%; border-radius: 6px;
-  background: linear-gradient(90deg, #003070, #2980b9 60%, #5dade2);
-  box-shadow: 0 0 8px rgba(41,128,185,.7);
-  transition: width .4s ease;
-}
-.stat-val { font-size: .76rem; color: var(--text); min-width: 60px; text-align: right; }
-.equip-row {
-  margin-top: 12px; padding-top: 10px;
-  border-top: 1px solid rgba(201,168,76,.15);
-  display: flex; gap: 16px; font-size: .72rem; color: #8a7060;
-}
-.equip-val { color: var(--text); font-weight: 600; }
-.equip-val.rare { color: var(--cyan); text-shadow: 0 0 8px rgba(0,229,255,.5); }
-.fury-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #8b0000, #c0392b);
-  color: #fff; font-size: .62rem; font-weight: 700; letter-spacing: .12em;
-  padding: 2px 8px; border-radius: 10px;
-  box-shadow: 0 0 10px rgba(192,57,43,.8);
-  animation: pulse-red 1s ease-in-out infinite;
-}
-@keyframes pulse-red {
-  0%,100% { box-shadow: 0 0 8px rgba(192,57,43,.8); }
-  50%      { box-shadow: 0 0 18px rgba(255,80,80,1); }
+.anim-hero-death .event-flash{animation:flash-death 1.1s ease forwards;}
+@keyframes flash-death{0%,100%{background:transparent;}30%{background:rgba(192,57,43,.3);}60%{background:rgba(100,0,0,.2);}}
+
+/* ── DODGE ── */
+.anim-hero-dodge .sprite-hero{animation:hero-dodge .5s ease forwards;}
+@keyframes hero-dodge{
+  0%  {transform:translateX(0) translateY(0);}
+  30% {transform:translateX(-22px) translateY(-12px);}
+  55% {transform:translateX(-16px) translateY(-6px);}
+  100%{transform:translateX(0) translateY(0);}
 }
 
-/* ── 3D ENEMY CARD ── */
-.enemy-3d {
-  background: linear-gradient(135deg, rgba(40,10,10,.97), rgba(20,8,12,.97));
-  border: 1px solid rgba(192,57,43,.35);
-  border-radius: 12px; padding: 18px 20px; margin-bottom: 14px;
-  position: relative; overflow: hidden;
-  box-shadow:
-    inset 0 1px 0 rgba(231,76,60,.15),
-    8px 8px 24px rgba(0,0,0,.8),
-    0 0 40px rgba(192,57,43,.08);
+/* ── BLOCK ── */
+.anim-hero-block .sprite-hero{animation:hero-block .5s ease forwards;}
+@keyframes hero-block{
+  0%,100%{transform:translateX(0);filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  30%    {transform:translateX(8px);filter:drop-shadow(0 0 16px rgba(201,168,76,.9)) drop-shadow(0 4px 8px rgba(0,0,0,.8));}
+  60%    {transform:translateX(4px);filter:drop-shadow(0 0 10px rgba(201,168,76,.5)) drop-shadow(0 4px 8px rgba(0,0,0,.8));}
 }
-.enemy-3d::after {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(231,76,60,.4), transparent);
-}
-.enemy-name {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 1rem; font-weight: 700; color: #e74c3c;
-  text-shadow: 0 0 14px rgba(231,76,60,.6);
-  margin-bottom: 6px;
-}
-.enemy-hp-wrap {
-  height: 14px; background: rgba(255,255,255,.06); border-radius: 7px;
-  overflow: hidden; margin-bottom: 6px;
-  box-shadow: inset 0 2px 4px rgba(0,0,0,.7);
-}
-.enemy-hp-fill {
-  height: 100%; border-radius: 7px;
-  background: linear-gradient(90deg, #6b0000, #c0392b 50%, #ff4444);
-  box-shadow: 0 0 10px rgba(255,68,68,.6);
-  transition: width .4s ease;
-}
-.enemy-stats { font-size: .72rem; color: #8a5050; margin-top: 4px; }
 
-/* ── 3D BUTTONS ── */
-.btn-attack div[data-testid="stButton"] > button {
-  background: linear-gradient(180deg, #6b1a1a 0%, #3d0e0e 50%, #2a0808 100%) !important;
-  color: #ff9999 !important; border: 1px solid rgba(192,57,43,.5) !important;
-  box-shadow: 0 4px 0 #1a0404, 0 5px 8px rgba(0,0,0,.6),
-              inset 0 1px 0 rgba(255,100,100,.2) !important;
+/* ── STUN ── */
+.anim-enemy-stun .sprite-enemy{animation:stun-wobble .6s ease forwards;}
+@keyframes stun-wobble{
+  0%,100%{transform:scaleX(-1) rotate(0deg);}
+  20%    {transform:scaleX(-1) rotate(10deg) translateY(-4px);}
+  40%    {transform:scaleX(-1) rotate(-8deg) translateY(2px);}
+  60%    {transform:scaleX(-1) rotate(6deg);}
+  80%    {transform:scaleX(-1) rotate(-4deg);}
 }
-.btn-attack div[data-testid="stButton"] > button:hover {
-  transform: translateY(1px) !important;
-  box-shadow: 0 3px 0 #1a0404, 0 4px 6px rgba(0,0,0,.6) !important;
+.stun-stars{position:absolute;font-size:1rem;animation:stars-float .7s ease forwards;z-index:6;}
+@keyframes stars-float{0%{opacity:1;transform:translateY(0) scale(1);}100%{opacity:0;transform:translateY(-28px) scale(.7);}}
+
+/* ── FURY ── */
+.anim-hero-fury .sprite-hero{animation:fury-aura .5s ease forwards;}
+@keyframes fury-aura{
+  0%,100%{filter:drop-shadow(0 4px 8px rgba(0,0,0,.8));transform:scale(1);}
+  30%    {filter:drop-shadow(0 0 22px rgba(255,60,0,1)) drop-shadow(0 4px 8px rgba(0,0,0,.8));transform:scale(1.14);}
+  60%    {filter:drop-shadow(0 0 16px rgba(255,120,0,.8)) drop-shadow(0 4px 8px rgba(0,0,0,.8));transform:scale(1.08);}
 }
-.btn-magic div[data-testid="stButton"] > button {
-  background: linear-gradient(180deg, #0d2a4a 0%, #071a30 50%, #040f1c 100%) !important;
-  color: #5dade2 !important; border: 1px solid rgba(41,128,185,.4) !important;
-  box-shadow: 0 4px 0 #020810, 0 5px 8px rgba(0,0,0,.6),
-              inset 0 1px 0 rgba(100,180,255,.15) !important;
+
+/* ── DAMAGE NUMBERS ── */
+.dmg-number{position:absolute;font-family:'Cinzel Decorative',serif;font-weight:900;
+  pointer-events:none;z-index:20;animation:dmg-float 1s ease forwards;}
+@keyframes dmg-float{
+  0%  {opacity:1;transform:translateY(0) scale(1.2);}
+  30% {opacity:1;transform:translateY(-18px) scale(1);}
+  70% {opacity:.8;transform:translateY(-30px) scale(.9);}
+  100%{opacity:0;transform:translateY(-44px) scale(.7);}
 }
-.btn-explore div[data-testid="stButton"] > button {
-  background: linear-gradient(180deg, #1a3a1a 0%, #0d200d 50%, #071407 100%) !important;
-  color: #00ff88 !important; border: 1px solid rgba(0,200,100,.3) !important;
-  box-shadow: 0 4px 0 #030a03, 0 5px 8px rgba(0,0,0,.6),
-              inset 0 1px 0 rgba(0,255,100,.1) !important;
-  font-size: .8rem !important; padding: 14px 8px !important;
-}
-.btn-gold div[data-testid="stButton"] > button {
-  background: linear-gradient(180deg, #3a2a08 0%, #241a05 50%, #160f03 100%) !important;
-  color: var(--gold-lt) !important; border: 1px solid rgba(201,168,76,.3) !important;
-  box-shadow: 0 4px 0 #0a0601, 0 5px 8px rgba(0,0,0,.6),
-              inset 0 1px 0 rgba(201,168,76,.2) !important;
-}
-.btn-danger div[data-testid="stButton"] > button {
-  background: linear-gradient(180deg, #4a0a0a 0%, #2a0505 100%) !important;
-  color: #ff6b6b !important; border: 1px solid rgba(192,57,43,.4) !important;
-}
+.dmg-hero  {color:#ff4444;font-size:1.4rem;text-shadow:0 0 10px rgba(255,68,68,.8);}
+.dmg-enemy {color:#ff9944;font-size:1.4rem;text-shadow:0 0 10px rgba(255,153,68,.8);}
+.dmg-magic {color:#00e5ff;font-size:1.3rem;text-shadow:0 0 12px rgba(0,229,255,.9);}
+
+/* ── ENEMY STATS BAR ── */
+.enemy-stats-bar{background:rgba(20,8,12,.7);border:1px solid rgba(192,57,43,.2);
+  border-radius:8px;padding:8px 14px;margin-bottom:14px;
+  font-size:.72rem;color:#8a5050;display:flex;gap:14px;align-items:center;}
+.stun-tag{color:#ffcc00;font-size:.65rem;margin-left:auto;}
+
+/* ── BUTTON VARIANTS ── */
+.btn-attack div[data-testid="stButton"]>button{
+  background:linear-gradient(180deg,#6b1a1a 0%,#3d0e0e 50%,#2a0808 100%) !important;
+  color:#ff9999 !important;border:1px solid rgba(192,57,43,.5) !important;
+  box-shadow:0 4px 0 #1a0404,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,100,100,.2) !important;}
+.btn-attack div[data-testid="stButton"]>button:hover{transform:translateY(1px) !important;
+  box-shadow:0 3px 0 #1a0404,0 4px 6px rgba(0,0,0,.6) !important;}
+.btn-magic div[data-testid="stButton"]>button{
+  background:linear-gradient(180deg,#0d2a4a 0%,#071a30 50%,#040f1c 100%) !important;
+  color:#5dade2 !important;border:1px solid rgba(41,128,185,.4) !important;
+  box-shadow:0 4px 0 #020810,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(100,180,255,.15) !important;}
+.btn-explore div[data-testid="stButton"]>button{
+  background:linear-gradient(180deg,#1a3a1a 0%,#0d200d 50%,#071407 100%) !important;
+  color:#00ff88 !important;border:1px solid rgba(0,200,100,.3) !important;
+  box-shadow:0 4px 0 #030a03,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(0,255,100,.1) !important;
+  font-size:.8rem !important;padding:14px 8px !important;}
+.btn-gold div[data-testid="stButton"]>button{
+  background:linear-gradient(180deg,#3a2a08 0%,#241a05 50%,#160f03 100%) !important;
+  color:var(--gold-lt) !important;border:1px solid rgba(201,168,76,.3) !important;
+  box-shadow:0 4px 0 #0a0601,0 5px 8px rgba(0,0,0,.6),inset 0 1px 0 rgba(201,168,76,.2) !important;}
+.btn-danger div[data-testid="stButton"]>button{
+  background:linear-gradient(180deg,#4a0a0a 0%,#2a0505 100%) !important;
+  color:#ff6b6b !important;border:1px solid rgba(192,57,43,.4) !important;}
 
 /* ── CLASS CARDS ── */
-.class-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
-.class-card {
-  background: linear-gradient(135deg, rgba(40,20,20,.9), rgba(20,10,15,.9));
-  border: 1px solid rgba(201,168,76,.2); border-radius: 12px; padding: 18px 16px;
-  position: relative; overflow: hidden;
-  box-shadow: 4px 4px 16px rgba(0,0,0,.7), inset 0 1px 0 rgba(201,168,76,.1);
-  transition: all .25s ease; cursor: pointer;
-}
-.class-card::before {
-  content: ''; position: absolute; inset: 0;
-  background: radial-gradient(circle at 30% 30%, rgba(201,168,76,.06), transparent 60%);
-}
-.class-icon { font-size: 2.2rem; margin-bottom: 8px; display: block; }
-.class-name {
-  font-family: 'Cinzel Decorative', serif; font-size: .82rem;
-  color: var(--gold-lt); font-weight: 700; letter-spacing: .08em;
-  margin-bottom: 6px;
-}
-.class-desc { font-size: .68rem; color: #8a7060; line-height: 1.5; }
-.class-stat { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
-.cs-bar { flex: 1; height: 4px; background: rgba(255,255,255,.08); border-radius: 2px; overflow: hidden; }
-.cs-fill { height: 100%; border-radius: 2px; }
+.class-card{background:linear-gradient(135deg,rgba(40,20,20,.9),rgba(20,10,15,.9));
+  border:1px solid rgba(201,168,76,.2);border-radius:12px;padding:18px 16px;
+  position:relative;overflow:hidden;margin-bottom:10px;
+  box-shadow:4px 4px 16px rgba(0,0,0,.7),inset 0 1px 0 rgba(201,168,76,.1);}
+.class-card::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 30% 30%,rgba(201,168,76,.06),transparent 60%);}
+.class-icon{font-size:2rem;margin-bottom:8px;display:block;}
+.class-name{font-family:'Cinzel Decorative',serif;font-size:.82rem;color:var(--gold-lt);
+  font-weight:700;letter-spacing:.08em;margin-bottom:6px;}
+.class-desc{font-size:.68rem;color:#8a7060;line-height:1.5;margin-bottom:10px;}
 
-/* ── LORE CARD ── */
-.lore-card {
-  background: linear-gradient(135deg, rgba(20,12,8,.95), rgba(12,8,10,.95));
-  border: 1px solid rgba(201,168,76,.15);
-  border-radius: 10px; padding: 20px 22px; margin: 16px 0;
-  font-size: .78rem; color: #8a7060; line-height: 1.75;
-  box-shadow: inset 0 0 60px rgba(0,0,0,.4);
-  font-style: italic;
-}
-.lore-title {
-  font-family: 'Cinzel Decorative', serif; font-size: .82rem;
-  color: var(--gold); font-style: normal; letter-spacing: .1em;
-  margin-bottom: 10px; display: block;
-}
+/* ── STAT BARS INSIDE CLASS CARDS (pure inline CSS, no Streamlit nesting) ── */
+.cs-stat-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.cs-stat-label{font-size:.62rem;color:#5a4030;min-width:60px;letter-spacing:.04em;}
+.cs-stat-bar-bg{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;}
+.cs-stat-bar-fill{height:100%;border-radius:3px;
+  background:linear-gradient(90deg,#c9a84c,#f0d080);box-shadow:0 0 6px rgba(201,168,76,.4);}
 
-/* ── INVENTORY ITEM ── */
-.inv-item {
-  background: rgba(30,18,22,.8);
-  border: 1px solid rgba(201,168,76,.15); border-radius: 8px;
-  padding: 10px 14px; margin-bottom: 8px;
-  display: flex; align-items: center; gap: 10px;
-  box-shadow: 2px 2px 8px rgba(0,0,0,.5);
-}
-.inv-item.rare { border-color: rgba(0,229,255,.35); box-shadow: 0 0 12px rgba(0,229,255,.1), 2px 2px 8px rgba(0,0,0,.5); }
-.inv-name { flex: 1; font-size: .78rem; color: var(--text-lt); }
-.inv-name.rare { color: var(--cyan); text-shadow: 0 0 8px rgba(0,229,255,.4); }
-.inv-attr { font-size: .7rem; color: #8a7060; }
-.inv-val { font-size: .7rem; color: var(--gold); }
+/* ── LORE ── */
+.lore-card{background:linear-gradient(135deg,rgba(20,12,8,.95),rgba(12,8,10,.95));
+  border:1px solid rgba(201,168,76,.15);border-radius:10px;padding:20px 22px;margin:16px 0;
+  font-size:.78rem;color:#8a7060;line-height:1.75;box-shadow:inset 0 0 60px rgba(0,0,0,.4);font-style:italic;}
+.lore-title{font-family:'Cinzel Decorative',serif;font-size:.82rem;color:var(--gold);
+  font-style:normal;letter-spacing:.1em;margin-bottom:10px;display:block;}
 
-/* ── MARKET ITEM ── */
-.mkt-item {
-  background: rgba(25,15,18,.9);
-  border: 1px solid rgba(201,168,76,.18); border-radius: 8px;
-  padding: 12px 14px; margin-bottom: 10px;
-  box-shadow: 3px 3px 10px rgba(0,0,0,.6);
-  position: relative; overflow: hidden;
-}
-.mkt-item.rare {
-  border-color: rgba(0,229,255,.4);
-  box-shadow: 0 0 16px rgba(0,229,255,.12), 3px 3px 10px rgba(0,0,0,.6);
-}
-.mkt-item::after {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(201,168,76,.3), transparent);
-}
-.mkt-name { font-size: .82rem; color: var(--text-lt); font-weight: 600; margin-bottom: 4px; }
-.mkt-name.rare { color: var(--cyan); text-shadow: 0 0 8px rgba(0,229,255,.5); }
-.mkt-sub { font-size: .7rem; color: #7a6050; margin-bottom: 8px; }
-.price-tag {
-  display: inline-block; background: linear-gradient(135deg, #3a2a08, #1a1203);
-  border: 1px solid rgba(201,168,76,.3); border-radius: 12px;
-  padding: 2px 10px; font-size: .72rem; color: var(--gold-lt);
-  margin-bottom: 8px;
-}
+/* ── INVENTORY / MARKET ── */
+.inv-item{background:rgba(30,18,22,.8);border:1px solid rgba(201,168,76,.15);
+  border-radius:8px;padding:10px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px;
+  box-shadow:2px 2px 8px rgba(0,0,0,.5);}
+.inv-item.rare{border-color:rgba(0,229,255,.35);box-shadow:0 0 12px rgba(0,229,255,.1),2px 2px 8px rgba(0,0,0,.5);}
+.inv-name{flex:1;font-size:.78rem;color:var(--text-lt);}
+.inv-attr{font-size:.7rem;color:#8a7060;}
+.inv-val{font-size:.7rem;color:var(--gold);}
+.mkt-item{background:rgba(25,15,18,.9);border:1px solid rgba(201,168,76,.18);
+  border-radius:8px;padding:12px 14px;margin-bottom:10px;
+  box-shadow:3px 3px 10px rgba(0,0,0,.6);position:relative;overflow:hidden;}
+.mkt-item.rare{border-color:rgba(0,229,255,.4);box-shadow:0 0 16px rgba(0,229,255,.12),3px 3px 10px rgba(0,0,0,.6);}
+.mkt-item::after{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.3),transparent);}
+.mkt-name{font-size:.82rem;color:var(--text-lt);font-weight:600;margin-bottom:4px;}
+.mkt-sub{font-size:.7rem;color:#7a6050;margin-bottom:8px;}
+.price-tag{display:inline-block;background:linear-gradient(135deg,#3a2a08,#1a1203);
+  border:1px solid rgba(201,168,76,.3);border-radius:12px;
+  padding:2px 10px;font-size:.72rem;color:var(--gold-lt);margin-bottom:8px;}
 
 /* ── LOG ── */
-.log-wrap {
-  background: rgba(10,6,8,.9);
-  border: 1px solid rgba(201,168,76,.1); border-radius: 8px;
-  padding: 12px 14px; margin-top: 14px;
-  max-height: 120px; overflow-y: auto;
-}
-.log-line {
-  font-size: .72rem; color: #7a6858; line-height: 1.8;
-  border-bottom: 1px solid rgba(255,255,255,.04); padding-bottom: 2px;
-}
-.log-line:first-child { color: var(--text); }
-.log-line.crit { color: #e74c3c; }
-.log-line.loot { color: var(--gold); }
-.log-line.level { color: var(--green); }
-.log-line.magic { color: #5dade2; }
+.log-wrap{background:rgba(10,6,8,.9);border:1px solid rgba(201,168,76,.1);
+  border-radius:8px;padding:12px 14px;margin-top:14px;max-height:120px;overflow-y:auto;}
+.log-line{font-size:.72rem;color:#7a6858;line-height:1.8;
+  border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:2px;}
+.log-line:first-child{color:var(--text);}
+.log-line.crit{color:#e74c3c;} .log-line.loot{color:var(--gold);}
+.log-line.level{color:var(--green);} .log-line.magic{color:#5dade2;}
 
 /* ── GAME OVER ── */
-.gameover-wrap { text-align: center; padding: 40px 20px; }
-.gameover-title {
-  font-family: 'UnifrakturMaguntia', cursive;
-  font-size: 4rem; color: #c0392b;
-  text-shadow: 0 0 30px rgba(192,57,43,.8), 0 0 60px rgba(192,57,43,.4);
-  animation: flicker 2s ease-in-out infinite;
-}
-@keyframes flicker {
-  0%,100% { opacity: 1; } 45% { opacity: .9; } 50% { opacity: .6; } 55% { opacity: .9; }
-}
-.gameover-stats {
-  background: rgba(20,10,12,.9); border: 1px solid rgba(192,57,43,.3);
-  border-radius: 10px; padding: 20px; margin: 20px auto; max-width: 320px;
-  font-size: .82rem; line-height: 2;
-}
+.gameover-wrap{text-align:center;padding:40px 20px;}
+.gameover-title{font-family:'UnifrakturMaguntia',cursive;font-size:4rem;color:#c0392b;
+  text-shadow:0 0 30px rgba(192,57,43,.8),0 0 60px rgba(192,57,43,.4);
+  animation:flicker 2s ease-in-out infinite;}
+@keyframes flicker{0%,100%{opacity:1;}45%{opacity:.9;}50%{opacity:.6;}55%{opacity:.9;}}
+.gameover-stats{background:rgba(20,10,12,.9);border:1px solid rgba(192,57,43,.3);
+  border-radius:10px;padding:20px;margin:20px auto;max-width:320px;font-size:.82rem;line-height:2;}
 
-/* ── CHEST ANIMATION ── */
-.chest-reveal {
-  text-align: center; padding: 20px;
-  font-family: 'Cinzel Decorative', serif;
-  font-size: 1rem; color: var(--gold-lt);
-  text-shadow: 0 0 20px rgba(201,168,76,.7);
-}
+.section-hdr{font-family:'Cinzel Decorative',serif;font-size:.72rem;letter-spacing:.2em;
+  text-transform:uppercase;color:#5a4030;margin-bottom:10px;margin-top:4px;
+  border-bottom:1px solid rgba(201,168,76,.1);padding-bottom:6px;}
 
-/* ── SECTION HEADER ── */
-.section-hdr {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: .72rem; letter-spacing: .2em; text-transform: uppercase;
-  color: #5a4030; margin-bottom: 10px; margin-top: 4px;
-  border-bottom: 1px solid rgba(201,168,76,.1); padding-bottom: 6px;
-}
-
-/* ── POTION ROW ── */
-.pot-row { display: flex; gap: 8px; margin-bottom: 12px; }
-.pot-row > div { flex: 1; }
-
-/* scrollbar */
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(201,168,76,.3); border-radius: 2px; }
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:2px;}
 </style>
 """, unsafe_allow_html=True)
 
 
 # ============================================================
-# CONSTANTES E DADOS
+# CONSTANTES
 # ============================================================
-
 CLASSES = {
     "Guerreiro": {
-        "icon": "🛡️",
+        "icon": "🛡️", "sprite": "⚔️",
         "hp": 180, "mana": 30, "atk": 14, "def_val": 9,
-        "weapon": {"name": "Espada Curta", "atk": 14, "type": "weapon", "rarity": "comum", "value": 30},
-        "armor":  {"name": "Cota de Ferro", "def": 9, "type": "armor",  "rarity": "comum", "value": 25},
+        "weapon": {"name": "Espada Curta",  "atk": 14, "type": "weapon", "rarity": "comum", "value": 30},
+        "armor":  {"name": "Cota de Ferro", "def": 9,  "type": "armor",  "rarity": "comum", "value": 25},
         "desc": "Resistência incomparável. Bloqueia 20% de todo dano recebido.",
         "special": "block",
         "stats": {"força": 4, "agilidade": 2, "magia": 1},
-        "lore": "Forjado nas guerras do norte, suportou o que nenhum outro sobreviveu."
     },
     "Mago": {
-        "icon": "🔮",
+        "icon": "🔮", "sprite": "🔮",
         "hp": 90, "mana": 140, "atk": 10, "def_val": 3,
         "weapon": {"name": "Cajado Aprendiz", "atk": 10, "type": "weapon", "rarity": "comum", "value": 30},
         "armor":  {"name": "Manto de Linho",  "def": 3,  "type": "armor",  "rarity": "comum", "value": 20},
         "desc": "Devastação arcana. Itens RAROS amplificam magias em +70%.",
         "special": "magic",
         "stats": {"força": 1, "agilidade": 2, "magia": 5},
-        "lore": "Banido da Academia Arcana por estudar feitiços proibidos."
     },
     "Berserker": {
-        "icon": "🪓",
+        "icon": "🪓", "sprite": "🪓",
         "hp": 220, "mana": 20, "atk": 12, "def_val": 4,
         "weapon": {"name": "Machado Gasto", "atk": 12, "type": "weapon", "rarity": "comum", "value": 30},
-        "armor":  {"name": "Pelagem Grossa", "def": 4,  "type": "armor",  "rarity": "comum", "value": 20},
+        "armor":  {"name": "Pelagem Grossa", "def": 4, "type": "armor",  "rarity": "comum", "value": 20},
         "desc": "Fúria incontrolável. Abaixo de 20% de vida: +90% de dano.",
         "special": "fury",
         "stats": {"força": 5, "agilidade": 3, "magia": 0},
-        "lore": "Enlouqueceu ao ver sua aldeia queimar. A dor virou poder."
     },
     "Assassino": {
-        "icon": "🗡️",
+        "icon": "🗡️", "sprite": "🥷",
         "hp": 115, "mana": 55, "atk": 18, "def_val": 2,
         "weapon": {"name": "Adagas Duplas", "atk": 18, "type": "weapon", "rarity": "comum", "value": 30},
         "armor":  {"name": "Couro Negro",   "def": 2,  "type": "armor",  "rarity": "comum", "value": 20},
         "desc": "Letal e evasivo. 30% esquiva, 25% atordoamento (stun).",
         "special": "stun",
         "stats": {"força": 3, "agilidade": 5, "magia": 2},
-        "lore": "Ninguém sabe seu nome real. Deixa apenas silêncio e sangue."
     },
 }
 
@@ -481,17 +430,17 @@ ENEMIES = {
 
 MARKET_POOL = {
     "weapon": [
-        {"name": "Espada Longa",    "atk": 36, "price": 140, "type": "weapon", "rarity": "comum", "value": 65},
-        {"name": "Machado de Guerra","atk": 42,"price": 160, "type": "weapon", "rarity": "comum", "value": 75},
-        {"name": "Glaive Sombrio",  "atk": 52, "price": 200, "type": "weapon", "rarity": "incomum","value": 95},
-        {"name": "Lâmina da Ruína", "atk": 75, "price": 320, "type": "weapon", "rarity": "raro",  "value": 160},
-        {"name": "DESTRUIDORA",     "atk": 130,"price": 550, "type": "weapon", "rarity": "lendário","value": 270},
+        {"name": "Espada Longa",     "atk": 36, "price": 140, "type": "weapon", "rarity": "comum",    "value": 65},
+        {"name": "Machado de Guerra","atk": 42,  "price": 160, "type": "weapon", "rarity": "comum",    "value": 75},
+        {"name": "Glaive Sombrio",   "atk": 52,  "price": 200, "type": "weapon", "rarity": "incomum",  "value": 95},
+        {"name": "Lâmina da Ruína",  "atk": 75,  "price": 320, "type": "weapon", "rarity": "raro",     "value": 160},
+        {"name": "DESTRUIDORA",      "atk": 130, "price": 550, "type": "weapon", "rarity": "lendário", "value": 270},
     ],
     "armor": [
-        {"name": "Cota de Malha",   "def": 18, "price": 120, "type": "armor",  "rarity": "comum", "value": 55},
-        {"name": "Escudo Cruzado",  "def": 25, "price": 160, "type": "armor",  "rarity": "comum", "value": 70},
-        {"name": "Armadura das Trevas","def":35,"price": 220,"type": "armor",  "rarity": "incomum","value": 100},
-        {"name": "Égide Arcana",    "def": 50, "price": 350, "type": "armor",  "rarity": "raro",  "value": 175},
+        {"name": "Cota de Malha",        "def": 18, "price": 120, "type": "armor", "rarity": "comum",   "value": 55},
+        {"name": "Escudo Cruzado",        "def": 25, "price": 160, "type": "armor", "rarity": "comum",   "value": 70},
+        {"name": "Armadura das Trevas",   "def": 35, "price": 220, "type": "armor", "rarity": "incomum", "value": 100},
+        {"name": "Égide Arcana",          "def": 50, "price": 350, "type": "armor", "rarity": "raro",    "value": 175},
     ],
 }
 
@@ -510,11 +459,23 @@ RARITY_COLORS = {
     "lendário": "#ff9100",
 }
 
+# Animation constants
+ANIM_NONE         = ""
+ANIM_HERO_ATTACK  = "anim-hero-attack"
+ANIM_HERO_MAGIC   = "anim-hero-magic"
+ANIM_HERO_HIT     = "anim-hero-hit"
+ANIM_HERO_DODGE   = "anim-hero-dodge"
+ANIM_HERO_BLOCK   = "anim-hero-block"
+ANIM_HERO_FURY    = "anim-hero-fury"
+ANIM_HERO_DEATH   = "anim-hero-death"
+ANIM_ENEMY_HIT    = "anim-enemy-hit"
+ANIM_ENEMY_STUN   = "anim-enemy-stun"
+ANIM_ENEMY_DEATH  = "anim-enemy-death"
+
 
 # ============================================================
 # HELPERS
 # ============================================================
-
 def log(msg: str, kind: str = ""):
     ts = time.strftime('%H:%M')
     st.session_state.log.insert(0, {"t": ts, "msg": msg, "kind": kind})
@@ -529,45 +490,52 @@ def spawn_enemy(floor: int):
     pool = ENEMIES[tier]
     name, base_hp, base_atk, icon = random.choice(pool)
     scale = 1 + (floor - 1) * 0.22
-    hp = int(base_hp * scale)
+    hp  = int(base_hp  * scale)
     atk = int(base_atk * scale)
-    return {"name": f"{icon} {name}", "hp": hp, "max_hp": hp, "atk": atk, "stunned": False}
+    return {"name": f"{icon} {name}", "hp": hp, "max_hp": hp,
+            "atk": atk, "stunned": False, "sprite": icon}
 
 def generate_market():
     weapons = MARKET_POOL["weapon"]
     armors  = MARKET_POOL["armor"]
-    floor = st.session_state.floor
-
-    # Rarity weights scale with floor
-    w_weights = [40, 30, 20, 7, 3] if floor >= 3 else [60, 30, 10, 0, 0]
-    a_weights = [50, 30, 15, 5]    if floor >= 3 else [70, 25, 5, 0]
+    floor   = st.session_state.floor
+    w_w = [40, 30, 20, 7, 3] if floor >= 3 else [60, 30, 10, 0, 0]
+    a_w = [50, 30, 15, 5]    if floor >= 3 else [70, 25, 5, 0]
 
     def pick(pool, weights):
         total = sum(weights[:len(pool)])
-        r = random.randint(1, total)
-        cum = 0
+        r = random.randint(1, total); cum = 0
         for item, w in zip(pool, weights):
             cum += w
             if r <= cum:
                 return dict(item)
         return dict(pool[-1])
 
-    return [pick(weapons, w_weights), pick(armors, a_weights)]
+    return [pick(weapons, w_w), pick(armors, a_w)]
 
 def render_bar(pct, kind="hp"):
     pct = max(0.0, min(1.0, pct))
-    cls = f"bar-fill-{kind}"
-    color_stop = "#ff6b6b" if kind == "hp" else "#5dade2"
-    return f'<div class="bar-wrap"><div class="{cls}" style="width:{pct*100:.1f}%"></div></div>'
+    return (f'<div class="bar-wrap">'
+            f'<div class="bar-fill-{kind}" style="width:{pct*100:.1f}%"></div>'
+            f'</div>')
 
 def rarity_color(r):
     return RARITY_COLORS.get(r, "#d4b896")
 
-def item_label(item):
-    attr = f"+{item['atk']} ATK" if item["type"] == "weapon" else f"+{item['def']} DEF"
-    r = item.get("rarity", "comum")
-    col = rarity_color(r)
-    return f'<span style="color:{col}">{item["name"]}</span> <span style="color:#5a4030;font-size:.7rem">({attr})</span>'
+def build_stat_bars(stats: dict) -> str:
+    """Return HTML string for class stat bars — fully self-contained."""
+    icons = {"força": "⚔️", "agilidade": "💨", "magia": "🔮"}
+    html = ""
+    for stat_name, val in stats.items():
+        pct = int(val / 5 * 100)
+        html += (
+            f'<div class="cs-stat-row">'
+            f'<span class="cs-stat-label">{icons.get(stat_name,"")} {stat_name}</span>'
+            f'<div class="cs-stat-bar-bg">'
+            f'<div class="cs-stat-bar-fill" style="width:{pct}%"></div>'
+            f'</div></div>'
+        )
+    return html
 
 
 # ============================================================
@@ -575,24 +543,18 @@ def item_label(item):
 # ============================================================
 def init_state():
     defaults = {
-        'game_active': False,
-        'hero_class': None,
-        'hp': 100, 'max_hp': 100,
-        'mana': 50, 'max_mana': 50,
-        'gold': 120,
+        'game_active': False, 'hero_class': None,
+        'hp': 100, 'max_hp': 100, 'mana': 50, 'max_mana': 50, 'gold': 120,
         'log': [{"t": "??:??", "msg": "O castelo aguarda...", "kind": ""}],
-        'enemy': None,
-        'weapon': None,
-        'armor': None,
-        'floor': 1,
-        'kills': 0,
-        'kills_needed': 3,
-        'inventory': [],
-        'state': 'menu',
-        'market_stock': [],
-        'total_kills': 0,
-        'gold_earned': 0,
-        'blocked_last': False,
+        'enemy': None, 'weapon': None, 'armor': None,
+        'floor': 1, 'kills': 0, 'kills_needed': 3,
+        'inventory': [], 'state': 'menu', 'market_stock': [],
+        'total_kills': 0, 'gold_earned': 0, 'blocked_last': False,
+        'arena_anim': ANIM_NONE,
+        'arena_dmg_hero': None,
+        'arena_dmg_enemy': None,
+        'arena_dmg_kind': '',
+        'dying_enemy': None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -607,24 +569,17 @@ init_state()
 def start_game(role: str):
     c = CLASSES[role]
     st.session_state.update({
-        'game_active': True,
-        'hero_class': role,
+        'game_active': True, 'hero_class': role,
         'hp': c['hp'], 'max_hp': c['hp'],
         'mana': c['mana'], 'max_mana': c['mana'],
-        'gold': 120,
-        'weapon': dict(c['weapon']),
-        'armor':  dict(c['armor']),
-        'state': 'playing',
-        'floor': 1,
-        'kills': 0,
-        'kills_needed': 3,
-        'inventory': [],
-        'market_stock': [],
-        'total_kills': 0,
-        'gold_earned': 120,
-        'enemy': None,
-        'log': [{"t": time.strftime('%H:%M'), "msg": f"⚔️ {role} entra no castelo maldito...", "kind": "level"}],
-        'blocked_last': False,
+        'gold': 120, 'weapon': dict(c['weapon']), 'armor': dict(c['armor']),
+        'state': 'playing', 'floor': 1, 'kills': 0, 'kills_needed': 3,
+        'inventory': [], 'market_stock': [], 'total_kills': 0,
+        'gold_earned': 120, 'enemy': None, 'blocked_last': False,
+        'arena_anim': ANIM_NONE, 'arena_dmg_hero': None,
+        'arena_dmg_enemy': None, 'arena_dmg_kind': '', 'dying_enemy': None,
+        'log': [{"t": time.strftime('%H:%M'),
+                 "msg": f"⚔️ {role} entra no castelo maldito...", "kind": "level"}],
     })
     st.rerun()
 
@@ -633,17 +588,17 @@ def start_game(role: str):
 # COMBAT LOGIC
 # ============================================================
 def player_attack(magic: bool = False):
-    ss = st.session_state
-    en = ss.enemy
+    ss      = st.session_state
+    en      = ss.enemy
     if not en:
         return
 
-    # ── Player hits enemy ──
     base_atk = ss.weapon['atk']
     hp_pct   = ss.hp / ss.max_hp
     is_fury  = ss.hero_class == "Berserker" and hp_pct < 0.2
     is_rare  = ss.weapon.get('rarity') in ('raro', 'lendário')
 
+    # ── Player hits enemy ──
     if magic:
         if ss.mana < 15:
             st.warning("Mana insuficiente!")
@@ -655,17 +610,27 @@ def player_attack(magic: bool = False):
             log("✨ Magia potencializada pelo item raro!", "magic")
         else:
             log("🔥 Feitiço lançado!", "magic")
+        hero_anim = ANIM_HERO_MAGIC
+        dmg_kind  = "dmg-magic"
     else:
         dmg = base_atk + random.randint(4, 14)
         if is_fury:
             dmg = int(dmg * 1.9)
             log("🔥 FÚRIA! Dano devastador!", "crit")
+            hero_anim = ANIM_HERO_FURY
+        else:
+            hero_anim = ANIM_HERO_ATTACK
+        dmg_kind = "dmg-enemy"
 
+    # Stun
     stun = False
     if ss.hero_class == "Assassino" and not magic and random.random() < 0.25:
         stun = True
         en['stunned'] = True
         log("⚡ STUN! Inimigo paralisado!", "crit")
+        enemy_anim = ANIM_ENEMY_STUN
+    else:
+        enemy_anim = ANIM_ENEMY_HIT
 
     en['hp'] -= dmg
     log(f"⚔️ Você causou {dmg} de dano em {en['name']}!", "")
@@ -673,24 +638,28 @@ def player_attack(magic: bool = False):
     # ── Enemy dies ──
     if en['hp'] <= 0:
         gold_gain = 45 + ss.floor * 12 + random.randint(0, 20)
-        ss.gold += gold_gain
+        ss.gold        += gold_gain
         ss.gold_earned += gold_gain
-        ss.kills += 1
+        ss.kills       += 1
         ss.total_kills += 1
-        ss.enemy = None
         log(f"💀 {en['name']} foi derrotado! +{gold_gain}G", "loot")
 
-        # drop chance
         if random.random() < 0.20 + ss.floor * 0.03:
             dropped = random.choice(generate_market())
             dropped["price"] = 0
             ss.inventory.append(dropped)
             log(f"🎁 Item largado: {dropped['name']}!", "loot")
 
-        # advance floor
+        ss.arena_anim      = ANIM_ENEMY_DEATH
+        ss.arena_dmg_enemy = dmg
+        ss.arena_dmg_kind  = dmg_kind
+        ss.arena_dmg_hero  = None
+        ss['dying_enemy']  = dict(en)
+        ss.enemy           = None
+
         if ss.kills >= ss.kills_needed:
-            ss.floor += 1
-            ss.kills = 0
+            ss.floor       += 1
+            ss.kills        = 0
             ss.kills_needed = 3 + (ss.floor // 2)
             ss.market_stock = []
             log(f"🌟 ANDAR {ss.floor} desbloqueado!", "level")
@@ -703,27 +672,114 @@ def player_attack(magic: bool = False):
     if en.get('stunned'):
         en['stunned'] = False
         log("😵 Inimigo ainda atordoado — sem contra-ataque.", "")
+        ss.arena_anim      = hero_anim
+        ss.arena_dmg_enemy = dmg
+        ss.arena_dmg_hero  = None
+        ss.arena_dmg_kind  = dmg_kind
     else:
         if ss.hero_class == "Assassino" and random.random() < 0.30:
             log("💨 Você esquivou do ataque!", "")
+            ss.arena_anim      = ANIM_HERO_DODGE
+            ss.arena_dmg_enemy = dmg
+            ss.arena_dmg_hero  = None
+            ss.arena_dmg_kind  = dmg_kind
         else:
-            reduction = ss.armor['def']
-            # Guerreiro passive block
+            reduction   = ss.armor['def']
             block_bonus = 0
             if ss.hero_class == "Guerreiro" and random.random() < 0.20:
                 block_bonus = en['atk'] // 2
                 ss.blocked_last = True
                 log("🛡️ Bloqueio! Dano reduzido!", "")
+                used_hero_anim = ANIM_HERO_BLOCK
             else:
                 ss.blocked_last = False
-            edmg = max(2, en['atk'] - reduction - block_bonus)
-            ss.hp -= edmg
+                used_hero_anim  = ANIM_HERO_HIT
+
+            edmg      = max(2, en['atk'] - reduction - block_bonus)
+            ss.hp    -= edmg
             log(f"👹 {en['name']} causou {edmg} de dano!", "crit")
+
+            ss.arena_anim      = used_hero_anim
+            ss.arena_dmg_enemy = dmg
+            ss.arena_dmg_hero  = edmg
+            ss.arena_dmg_kind  = dmg_kind
+
             if ss.hp <= 0:
-                ss.hp = 0
-                ss.state = 'player_dead'
+                ss.hp         = 0
+                ss.arena_anim = ANIM_HERO_DEATH
+                ss.state      = 'player_dead'
 
     st.rerun()
+
+
+# ============================================================
+# ARENA RENDERER
+# ============================================================
+def render_arena(enemy):
+    ss         = st.session_state
+    anim_cls   = ss.get('arena_anim', ANIM_NONE)
+    dmg_hero   = ss.get('arena_dmg_hero')
+    dmg_enemy  = ss.get('arena_dmg_enemy')
+    dmg_kind   = ss.get('arena_dmg_kind', '')
+
+    hero_sprite    = CLASSES.get(ss.hero_class, {}).get('sprite', '⚔️')
+    display_enemy  = enemy or ss.get('dying_enemy')
+    enemy_sprite   = display_enemy['sprite'] if display_enemy else "👹"
+    enemy_name     = display_enemy['name']   if display_enemy else ""
+
+    hero_hp_pct  = ss.hp / ss.max_hp
+    enemy_hp_pct = (max(0, display_enemy['hp']) / display_enemy['max_hp']) if display_enemy else 0
+
+    # Damage number HTML
+    dmg_html = ""
+    if dmg_enemy is not None:
+        dmg_html += f'<div class="dmg-number {dmg_kind}" style="right:22%;bottom:105px">-{dmg_enemy}</div>'
+    if dmg_hero is not None:
+        dmg_html += f'<div class="dmg-number dmg-hero" style="left:22%;bottom:105px">-{dmg_hero}</div>'
+
+    stun_html = ""
+    if display_enemy and display_enemy.get('stunned'):
+        stun_html = '<div class="stun-stars" style="right:18%;bottom:140px">⭐⭐⭐</div>'
+
+    enemy_section = ""
+    if display_enemy:
+        enemy_section = f"""
+        <div class="arena-hp-row">
+          <span class="ahp-label" style="color:#8a5050">👹 {enemy_name.split(' ',1)[-1] if ' ' in enemy_name else enemy_name}</span>
+          <div class="ahp-bar"><div class="ahp-fill-enemy" style="width:{enemy_hp_pct*100:.1f}%"></div></div>
+          <span class="ahp-val">{max(0,display_enemy['hp'])}/{display_enemy['max_hp']}</span>
+        </div>
+        <div class="enemy-sprite-wrap">
+          <div class="sprite sprite-enemy" style="transform:scaleX(-1)">{enemy_sprite}</div>
+          <div class="enemy-sprite-label">{enemy_name}</div>
+        </div>"""
+
+    st.markdown(f"""
+    <div class="arena-wrap {anim_cls}">
+      <div class="arena-hp-row">
+        <span class="ahp-label">❤️ {ss.hero_class}</span>
+        <div class="ahp-bar"><div class="ahp-fill-hero" style="width:{hero_hp_pct*100:.1f}%"></div></div>
+        <span class="ahp-val">{ss.hp}/{ss.max_hp}</span>
+      </div>
+      {enemy_section}
+      <div class="vs-badge">VS</div>
+      <div class="hero-sprite-wrap">
+        <div class="sprite sprite-hero">{hero_sprite}</div>
+        <div class="hero-sprite-label">{ss.hero_class}</div>
+      </div>
+      <div class="event-flash"></div>
+      {dmg_html}
+      {stun_html}
+    </div>
+    """, unsafe_allow_html=True)
+
+    # Clear anim state so it runs only once per action
+    ss.arena_anim      = ANIM_NONE
+    ss.arena_dmg_hero  = None
+    ss.arena_dmg_enemy = None
+    ss.arena_dmg_kind  = ""
+    if not enemy:
+        ss['dying_enemy'] = None
 
 
 # ============================================================
@@ -732,7 +788,6 @@ def player_attack(magic: bool = False):
 def render_menu():
     st.markdown("<div class='castle-title'>Dark Castle</div>", unsafe_allow_html=True)
     st.markdown("<div class='castle-subtitle'>✦ Ascensão ✦</div>", unsafe_allow_html=True)
-
     st.markdown("""
     <div class="lore-card">
       <span class="lore-title">📜 A Profecia</span>
@@ -745,29 +800,19 @@ def render_menu():
     st.markdown("<div class='section-hdr'>Escolha sua linhagem</div>", unsafe_allow_html=True)
 
     cols = st.columns(2)
-    class_list = list(CLASSES.items())
-    for idx, (name, data) in enumerate(class_list):
-        col = cols[idx % 2]
-        with col:
-            stats = data["stats"]
-            bars_html = ""
-            for stat_name, val in stats.items():
-                icons = {"força": "⚔️", "agilidade": "💨", "magia": "🔮"}
-                fill_pct = val / 5 * 100
-                bars_html += f"""
-                <div class="class-stat">
-                  <span style="font-size:.65rem;color:#5a4030;min-width:54px">{icons.get(stat_name,'')} {stat_name}</span>
-                  <div class="cs-bar"><div class="cs-fill" style="width:{fill_pct}%;background:linear-gradient(90deg,#c9a84c,#f0d080)"></div></div>
-                </div>"""
-
-            st.markdown(f"""
-            <div class="class-card">
-              <span class="class-icon">{data['icon']}</span>
-              <div class="class-name">{name}</div>
-              <div class="class-desc">{data['desc']}</div>
-              {bars_html}
-            </div>
-            """, unsafe_allow_html=True)
+    for idx, (name, data) in enumerate(CLASSES.items()):
+        with cols[idx % 2]:
+            bars_html = build_stat_bars(data["stats"])
+            # Single st.markdown call — no nested columns, no Streamlit parsing issues
+            st.markdown(
+                f'<div class="class-card">'
+                f'<span class="class-icon">{data["icon"]}</span>'
+                f'<div class="class-name">{name}</div>'
+                f'<div class="class-desc">{data["desc"]}</div>'
+                f'{bars_html}'
+                f'</div>',
+                unsafe_allow_html=True
+            )
             if st.button(f"{data['icon']} Jogar como {name}", key=f"start_{name}"):
                 start_game(name)
 
@@ -776,31 +821,28 @@ def render_menu():
 # ████████  RENDER HERO PANEL  ████████
 # ============================================================
 def render_hero_panel():
-    ss = st.session_state
-    hp_pct   = ss.hp / ss.max_hp
-    mp_pct   = ss.mana / ss.max_mana
-    is_fury  = ss.hero_class == "Berserker" and hp_pct < 0.2
-    w_rarity = ss.weapon.get('rarity', 'comum')
-    a_rarity = ss.armor.get('rarity', 'comum')
-    w_col    = rarity_color(w_rarity)
-    a_col    = rarity_color(a_rarity)
-
-    fury_badge = '<span class="fury-badge">⚡ FÚRIA</span>' if is_fury else ""
+    ss     = st.session_state
+    hp_pct = ss.hp / ss.max_hp
+    mp_pct = ss.mana / ss.max_mana
+    is_fury = ss.hero_class == "Berserker" and hp_pct < 0.2
+    w_col  = rarity_color(ss.weapon.get('rarity', 'comum'))
+    a_col  = rarity_color(ss.armor.get('rarity', 'comum'))
+    fury   = '<span class="fury-badge">⚡ FÚRIA</span>' if is_fury else ""
 
     st.markdown(f"""
     <div class="hero-3d">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <span class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()} {fury_badge}</span>
+        <span class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()} {fury}</span>
         <span class="hero-gold">💰 {ss.gold}G</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">❤️ VIDA</span>
-        {render_bar(hp_pct, 'hp')}
+        {render_bar(hp_pct,'hp')}
         <span class="stat-val">{ss.hp}/{ss.max_hp}</span>
       </div>
       <div class="stat-row">
         <span class="stat-label">🔮 MANA</span>
-        {render_bar(mp_pct, 'mp')}
+        {render_bar(mp_pct,'mp')}
         <span class="stat-val">{ss.mana}/{ss.max_mana}</span>
       </div>
       <div class="equip-row">
@@ -818,44 +860,36 @@ def render_hero_panel():
 def render_combat():
     ss = st.session_state
 
-    # Floor lore
     lore = LORE_PER_FLOOR.get(ss.floor, "")
     if lore:
-        st.markdown(f"""
-        <div style="font-style:italic;font-size:.72rem;color:#5a4030;
+        st.markdown(f"""<div style="font-style:italic;font-size:.72rem;color:#5a4030;
           border-left:2px solid rgba(201,168,76,.2);padding-left:10px;margin-bottom:14px">
-          {lore}
-        </div>""", unsafe_allow_html=True)
+          {lore}</div>""", unsafe_allow_html=True)
 
-    # Kill progress
-    progress_pct = ss.kills / ss.kills_needed
+    prog = ss.kills / ss.kills_needed
     st.markdown(f"""
     <div style="margin-bottom:12px">
       <div style="font-size:.68rem;color:#5a4030;letter-spacing:.1em;margin-bottom:4px">
         PROGRESSO DO ANDAR — {ss.kills}/{ss.kills_needed} abates
       </div>
       <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-        <div style="width:{progress_pct*100:.0f}%;height:100%;background:linear-gradient(90deg,#3a7a3a,#00ff88);
+        <div style="width:{prog*100:.0f}%;height:100%;
+          background:linear-gradient(90deg,#3a7a3a,#00ff88);
           box-shadow:0 0 8px rgba(0,255,136,.5);border-radius:3px;transition:width .4s"></div>
       </div>
     </div>""", unsafe_allow_html=True)
 
     if ss.enemy:
         en = ss.enemy
-        hp_pct = max(0, en['hp'] / en['max_hp'])
-        stun_txt = ' <span style="color:#ffcc00;font-size:.65rem">[ATORDOADO]</span>' if en.get('stunned') else ""
+        render_arena(en)
 
-        st.markdown(f"""
-        <div class="enemy-3d">
-          <div class="enemy-name">{en['name']}{stun_txt}</div>
-          <div class="enemy-hp-wrap">
-            <div class="enemy-hp-fill" style="width:{hp_pct*100:.1f}%"></div>
-          </div>
-          <div class="enemy-stats">
-            ❤️ {max(0,en['hp'])}/{en['max_hp']} HP &nbsp;|&nbsp; ⚔️ {en['atk']} ATK
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
+        stun_tag = '<span class="stun-tag">⭐ ATORDOADO</span>' if en.get('stunned') else ""
+        st.markdown(f"""<div class="enemy-stats-bar">
+          <span>{en['name']}</span>
+          <span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span>
+          <span>⚔️ {en['atk']} ATK</span>
+          {stun_tag}
+        </div>""", unsafe_allow_html=True)
 
         c1, c2 = st.columns(2)
         with c1:
@@ -867,33 +901,27 @@ def render_combat():
         if ss.hero_class == "Mago":
             with c2:
                 st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
-                if st.button(f"🔥 MAGIA (15☁️)", key="btn_magic"):
+                if st.button("🔥 MAGIA  (15 Mana)", key="btn_magic"):
                     player_attack(magic=True)
                 st.markdown('</div>', unsafe_allow_html=True)
         else:
+            skill_map = {
+                "Guerreiro": "🛡️ BLOQUEIO  passivo 20%",
+                "Berserker": "🔥 FÚRIA  passivo < 20% HP",
+                "Assassino": "💨 ESQUIVA  passivo 30%",
+            }
             with c2:
-                # Flavour skill display
-                skill_map = {
-                    "Guerreiro":  "🛡️ BLOQUEIO (passivo 20%)",
-                    "Berserker":  "🔥 FÚRIA (passivo <20% HP)",
-                    "Assassino":  "💨 ESQUIVA (passivo 30%)",
-                }
-                st.markdown(f"""
-                <div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.1);
-                  border-radius:8px;padding:10px;text-align:center;font-size:.68rem;color:#5a4030">
-                  {skill_map.get(ss.hero_class,"")}
-                </div>""", unsafe_allow_html=True)
-
+                st.markdown(f"""<div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.1);
+                  border-radius:8px;padding:10px;text-align:center;font-size:.65rem;color:#5a4030">
+                  {skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
     else:
+        render_arena(None)
         st.markdown('<div class="btn-explore">', unsafe_allow_html=True)
         if st.button("👣 EXPLORAR A SALA", key="btn_explore"):
-            roll = random.random()
-            if roll < 0.50:
+            if random.random() < 0.50:
                 gain = 35 + ss.floor * 12 + random.randint(0, 18)
-                ss.gold += gain
-                ss.gold_earned += gain
+                ss.gold += gain; ss.gold_earned += gain
                 log(f"🎁 Baú encontrado! +{gain}G", "loot")
-                # small chance of item in chest
                 if random.random() < 0.15:
                     item = random.choice(generate_market())
                     item["price"] = 0
@@ -911,69 +939,52 @@ def render_combat():
 # ============================================================
 def render_inventory():
     ss = st.session_state
-
     st.markdown("<div class='section-hdr'>Itens Equipados</div>", unsafe_allow_html=True)
     w_col = rarity_color(ss.weapon.get('rarity','comum'))
     a_col = rarity_color(ss.armor.get('rarity','comum'))
     st.markdown(f"""
     <div class="inv-item">
       <span style="font-size:1.2rem">⚔️</span>
-      <div>
-        <div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div>
-        <div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div>
-      </div>
+      <div><div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div>
+        <div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div></div>
     </div>
     <div class="inv-item">
       <span style="font-size:1.2rem">🛡️</span>
-      <div>
-        <div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div>
-        <div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
+      <div><div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div>
+        <div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div></div>
+    </div>""", unsafe_allow_html=True)
 
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Mochila</div>", unsafe_allow_html=True)
-
     if not ss.inventory:
         st.markdown('<div style="color:#5a4030;font-size:.78rem;padding:10px 0">— Mochila vazia —</div>', unsafe_allow_html=True)
         return
 
     for i, item in enumerate(ss.inventory):
-        r = item.get('rarity', 'comum')
-        col = rarity_color(r)
-        attr = f"+{item['atk']} ATK" if item['type'] == 'weapon' else f"+{item['def']} DEF"
-        icon = "⚔️" if item['type'] == 'weapon' else "🛡️"
-        rare_cls = "rare" if r in ('raro','lendário') else ""
-
+        r       = item.get('rarity','comum')
+        col     = rarity_color(r)
+        attr    = f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"
+        icon    = "⚔️" if item['type']=='weapon' else "🛡️"
+        rare_c  = "rare" if r in ('raro','lendário') else ""
         st.markdown(f"""
-        <div class="inv-item {rare_cls}">
+        <div class="inv-item {rare_c}">
           <span style="font-size:1.1rem">{icon}</span>
-          <div style="flex:1">
-            <div class="inv-name {rare_cls}" style="color:{col}">{item['name']}</div>
-            <div class="inv-attr">{attr} · {r.upper()}</div>
-          </div>
+          <div style="flex:1"><div class="inv-name" style="color:{col}">{item['name']}</div>
+            <div class="inv-attr">{attr} · {r.upper()}</div></div>
           <div class="inv-val">⚖️ {item.get('value',0)}G</div>
         </div>""", unsafe_allow_html=True)
-
         c1, c2 = st.columns(2)
         with c1:
             st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-            if st.button(f"Equipar", key=f"equip_{i}"):
-                slot = item['type']
-                old = ss[slot]
-                ss[slot] = item
-                ss.inventory[i] = old
-                log(f"🔄 Equipou: {item['name']}!", "")
-                st.rerun()
+            if st.button("Equipar", key=f"equip_{i}"):
+                old = ss[item['type']]; ss[item['type']] = item; ss.inventory[i] = old
+                log(f"🔄 Equipou: {item['name']}!", ""); st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         with c2:
             st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-            sell_val = item.get('value', 10)
-            if st.button(f"Vender +{sell_val}G", key=f"sell_inv_{i}"):
-                ss.gold += sell_val
-                ss.inventory.pop(i)
-                log(f"💰 Vendeu {item['name']} por {sell_val}G", "loot")
-                st.rerun()
+            sv = item.get('value', 10)
+            if st.button(f"Vender +{sv}G", key=f"sell_inv_{i}"):
+                ss.gold += sv; ss.inventory.pop(i)
+                log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -982,71 +993,54 @@ def render_inventory():
 # ============================================================
 def render_market():
     ss = st.session_state
-
     if not ss.market_stock:
         ss.market_stock = generate_market()
 
-    # Potions
     st.markdown("<div class='section-hdr'>Poções</div>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button("❤️ Vida +50 HP\n(40G)", key="pot_hp"):
             if ss.gold >= 40:
-                ss.gold -= 40
-                healed = min(ss.max_hp, ss.hp + 50) - ss.hp
-                ss.hp += healed
-                log(f"❤️ Poção de vida: +{healed} HP", "loot")
-                st.rerun()
-            else:
-                st.warning("Ouro insuficiente!")
+                ss.gold -= 40; healed = min(ss.max_hp, ss.hp+50)-ss.hp; ss.hp += healed
+                log(f"❤️ Poção de vida: +{healed} HP", "loot"); st.rerun()
+            else: st.warning("Ouro insuficiente!")
         st.markdown('</div>', unsafe_allow_html=True)
     with c2:
         st.markdown('<div class="btn-magic">', unsafe_allow_html=True)
         if st.button("🔮 Mana +40\n(40G)", key="pot_mp"):
             if ss.gold >= 40:
-                ss.gold -= 40
-                restored = min(ss.max_mana, ss.mana + 40) - ss.mana
-                ss.mana += restored
-                log(f"🔮 Poção de mana: +{restored} Mana", "magic")
-                st.rerun()
-            else:
-                st.warning("Ouro insuficiente!")
+                ss.gold -= 40; restored = min(ss.max_mana, ss.mana+40)-ss.mana; ss.mana += restored
+                log(f"🔮 Poção de mana: +{restored} Mana", "magic"); st.rerun()
+            else: st.warning("Ouro insuficiente!")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Equipment
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Equipamentos</div>", unsafe_allow_html=True)
-
     for i, item in enumerate(ss.market_stock):
-        r = item.get('rarity', 'comum')
-        col = rarity_color(r)
-        attr = f"+{item['atk']} ATK" if item['type'] == 'weapon' else f"+{item['def']} DEF"
-        icon = "⚔️" if item['type'] == 'weapon' else "🛡️"
-        rare_cls = "rare" if r in ('raro','lendário') else ""
-        badge = f'<span style="background:{col};color:#000;font-size:.6rem;padding:1px 6px;border-radius:8px;font-weight:700">{r.upper()}</span>' if r != "comum" else ""
-
+        r       = item.get('rarity','comum')
+        col     = rarity_color(r)
+        attr    = f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"
+        icon    = "⚔️" if item['type']=='weapon' else "🛡️"
+        rare_c  = "rare" if r in ('raro','lendário') else ""
+        badge   = (f'<span style="background:{col};color:#000;font-size:.6rem;'
+                   f'padding:1px 6px;border-radius:8px;font-weight:700">{r.upper()}</span>'
+                   if r != "comum" else "")
         st.markdown(f"""
-        <div class="mkt-item {rare_cls}">
+        <div class="mkt-item {rare_c}">
           <div style="display:flex;justify-content:space-between;align-items:flex-start">
-            <div class="mkt-name {rare_cls}" style="color:{col}">{icon} {item['name']} {badge}</div>
+            <div class="mkt-name" style="color:{col}">{icon} {item['name']} {badge}</div>
             <div class="price-tag">💰 {item['price']}G</div>
           </div>
           <div class="mkt-sub">{attr}</div>
         </div>""", unsafe_allow_html=True)
-
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button(f"Comprar {item['name']}", key=f"buy_{i}"):
             if ss.gold >= item['price']:
-                ss.gold -= item['price']
-                bought = dict(item)
-                ss.inventory.append(bought)
-                ss.market_stock.pop(i)
+                ss.gold -= item['price']; ss.inventory.append(dict(item)); ss.market_stock.pop(i)
                 log(f"🛒 Comprou: {item['name']}!", "loot")
-                if not ss.market_stock:
-                    ss.market_stock = generate_market()
+                if not ss.market_stock: ss.market_stock = generate_market()
                 st.rerun()
-            else:
-                st.warning("Ouro insuficiente!")
+            else: st.warning("Ouro insuficiente!")
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Vender Inventário</div>", unsafe_allow_html=True)
@@ -1054,13 +1048,11 @@ def render_market():
         st.markdown('<div style="color:#5a4030;font-size:.78rem">— Nada para vender —</div>', unsafe_allow_html=True)
     else:
         for i, item in enumerate(ss.inventory):
-            sell_val = item.get('value', 10)
+            sv = item.get('value', 10)
             st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-            if st.button(f"Vender {item['name']} (+{sell_val}G)", key=f"sell_mkt_{i}"):
-                ss.gold += sell_val
-                ss.inventory.pop(i)
-                log(f"💰 Vendeu {item['name']} por {sell_val}G", "loot")
-                st.rerun()
+            if st.button(f"Vender {item['name']} (+{sv}G)", key=f"sell_mkt_{i}"):
+                ss.gold += sv; ss.inventory.pop(i)
+                log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -1068,13 +1060,12 @@ def render_market():
 # ████████  RENDER LOG  ████████
 # ============================================================
 def render_log():
-    ss = st.session_state
-    lines = ss.log[:6]
-    items_html = ""
-    for entry in lines:
-        cls = entry.get("kind", "")
-        items_html += f'<div class="log-line {cls}">[{entry["t"]}] {entry["msg"]}</div>'
-    st.markdown(f'<div class="log-wrap">{items_html}</div>', unsafe_allow_html=True)
+    lines = st.session_state.log[:6]
+    items = "".join(
+        f'<div class="log-line {e.get("kind","")}">[{e["t"]}] {e["msg"]}</div>'
+        for e in lines
+    )
+    st.markdown(f'<div class="log-wrap">{items}</div>', unsafe_allow_html=True)
 
 
 # ============================================================
@@ -1082,20 +1073,13 @@ def render_log():
 # ============================================================
 def render_game():
     ss = st.session_state
-
-    # Floor badge
-    st.markdown(f"""
-    <div class="floor-wrapper">
-      <span class="floor-3d">⚔️ ANDAR {ss.floor} ⚔️</span>
-    </div>""", unsafe_allow_html=True)
-
+    st.markdown(f'<div class="floor-wrapper"><span class="floor-3d">⚔️ ANDAR {ss.floor} ⚔️</span></div>',
+                unsafe_allow_html=True)
     render_hero_panel()
-
     tab_c, tab_i, tab_m = st.tabs(["⚔️  COMBATE", "🎒  MOCHILA", "🛒  MERCADO"])
     with tab_c: render_combat()
     with tab_i: render_inventory()
     with tab_m: render_market()
-
     render_log()
 
 
@@ -1104,6 +1088,10 @@ def render_game():
 # ============================================================
 def render_gameover():
     ss = st.session_state
+    # Show death arena with hero dying animation
+    ss.arena_anim = ANIM_HERO_DEATH
+    render_arena(None)
+
     st.markdown(f"""
     <div class="gameover-wrap">
       <div class="gameover-title">Game Over</div>
@@ -1120,8 +1108,7 @@ def render_gameover():
 
     st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
     if st.button("🔄 RECOMEÇAR A JORNADA"):
-        reset_state()
-        st.rerun()
+        reset_state(); st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -1133,9 +1120,7 @@ def render_victory():
     st.markdown(f"""
     <div class="gameover-wrap">
       <div style="font-family:'UnifrakturMaguntia',cursive;font-size:3.6rem;
-        color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">
-        Vitória!
-      </div>
+        color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">Vitória!</div>
       <div style="font-family:'Cinzel',serif;color:#8a7040;font-size:.82rem;margin:8px 0 20px">
         O trono do Rei Eterno é seu. O castelo inclina sua coroa.
       </div>
@@ -1148,8 +1133,7 @@ def render_victory():
 
     st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
     if st.button("🏆 JOGAR NOVAMENTE"):
-        reset_state()
-        st.rerun()
+        reset_state(); st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
 
@@ -1158,11 +1142,7 @@ def render_victory():
 # ============================================================
 state = st.session_state.state
 
-if state == 'menu':
-    render_menu()
-elif state == 'playing':
-    render_game()
-elif state == 'player_dead':
-    render_gameover()
-elif state == 'victory':
-    render_victory()
+if   state == 'menu':        render_menu()
+elif state == 'playing':     render_game()
+elif state == 'player_dead': render_gameover()
+elif state == 'victory':     render_victory()
