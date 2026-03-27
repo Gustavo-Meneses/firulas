@@ -479,6 +479,44 @@ ANIM_ENEMY_HIT    = "anim-enemy-hit"
 ANIM_ENEMY_STUN   = "anim-enemy-stun"
 ANIM_ENEMY_DEATH  = "anim-enemy-death"
 
+# ============================================================
+# ÁUDIO — SFX & BGM 8-BIT
+# ============================================================
+SOUNDS = {
+    "start":   "https://cdn.pixabay.com/audio/2021/08/04/audio_0625c15139.mp3", # Game Start
+    "attack":  "https://cdn.pixabay.com/audio/2022/03/15/audio_8b326c4a17.mp3", # 8-bit Sword
+    "magic":   "https://cdn.pixabay.com/audio/2021/08/04/audio_12b0c7443c.mp3", # 8-bit Magic
+    "loot":    "https://cdn.pixabay.com/audio/2021/08/04/audio_32cd7a2942.mp3", # 8-bit Coin
+    "death":   "https://cdn.pixabay.com/audio/2021/08/04/audio_c40006960d.mp3", # 8-bit Death
+    "victory": "https://cdn.pixabay.com/audio/2021/08/04/audio_7f61fd0296.mp3", # 8-bit Victory
+    "bgm":     "https://cdn.pixabay.com/audio/2022/01/18/audio_d0a13f69d2.mp3", # Somber 8-bit Theme
+    "click":   "https://cdn.pixabay.com/audio/2021/08/04/audio_1480909694.mp3", # UI Click
+}
+
+def play_sfx(key):
+    if key in SOUNDS:
+        st.session_state.sfx_trigger = key
+
+def render_audio():
+    ss = st.session_state
+    # SFX Trigger
+    if ss.get('sfx_trigger'):
+        sfx_url = SOUNDS.get(ss.sfx_trigger)
+        components.html(f"""
+            <audio autoplay><source src="{sfx_url}" type="audio/mpeg"></audio>
+        """, height=0)
+        ss.sfx_trigger = None
+    
+    # BGM - Renderizada apenas uma vez para não reiniciar em cada rerun
+    if ss.get('game_active') and not ss.get('bgm_playing'):
+        bgm_url = SOUNDS['bgm']
+        components.html(f"""
+            <audio autoplay loop id="bgm"><source src="{bgm_url}" type="audio/mpeg"></audio>
+            <script>document.getElementById('bgm').volume = 0.3;</script>
+        """, height=0)
+        ss.bgm_playing = True
+    elif not ss.get('game_active'):
+        ss.bgm_playing = False
 
 # ============================================================
 # HELPERS
@@ -562,6 +600,8 @@ def init_state():
         'arena_dmg_enemy': None,
         'arena_dmg_kind': '',
         'dying_enemy': None,
+        'sfx_trigger': None,
+        'bgm_playing': False,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -575,6 +615,7 @@ init_state()
 # ============================================================
 def start_game(role: str):
     c = CLASSES[role]
+    play_sfx("start")
     st.session_state.update({
         'game_active': True, 'hero_class': role,
         'hp': c['hp'], 'max_hp': c['hp'],
@@ -619,6 +660,7 @@ def player_attack(magic: bool = False):
             log("🔥 Feitiço lançado!", "magic")
         hero_anim = ANIM_HERO_MAGIC
         dmg_kind  = "dmg-magic"
+        play_sfx("magic")
     else:
         dmg = base_atk + random.randint(4, 14)
         if is_fury:
@@ -628,6 +670,7 @@ def player_attack(magic: bool = False):
         else:
             hero_anim = ANIM_HERO_ATTACK
         dmg_kind = "dmg-enemy"
+        play_sfx("attack")
 
     # Stun
     stun = False
@@ -644,6 +687,7 @@ def player_attack(magic: bool = False):
 
     # ── Enemy dies ──
     if en['hp'] <= 0:
+        play_sfx("death")
         gold_gain = 45 + ss.floor * 12 + random.randint(0, 20)
         ss.gold        += gold_gain
         ss.gold_earned += gold_gain
@@ -721,178 +765,57 @@ def player_attack(magic: bool = False):
 
 # ============================================================
 # PIXEL-ART SPRITE DEFINITIONS  (pure CSS box-shadow art)
-# Each sprite = list of (col, row, hex_color), 1-indexed top-left.
-# Rendered as a 1px div scaled via box-shadow — no images, no emojis.
 # ============================================================
 def _px_to_shadow(pixels, scale=3):
     return ", ".join(f"{c*scale}px {r*scale}px 0 {col}" for c, r, col in pixels)
 
-WARRIOR_PX = [
-    (6,1,"#a0a0c0"),(7,1,"#c0c0e0"),(8,1,"#c0c0e0"),(9,1,"#a0a0c0"),
-    (5,2,"#8080a0"),(6,2,"#c0c0e0"),(7,2,"#e0e0ff"),(8,2,"#e0e0ff"),(9,2,"#c0c0e0"),(10,2,"#8080a0"),
-    (5,3,"#8080a0"),(6,3,"#c9a84c"),(7,3,"#f0d080"),(8,3,"#f0d080"),(9,3,"#c9a84c"),(10,3,"#8080a0"),
-    (6,4,"#a0a0c0"),(7,4,"#d4b896"),(8,4,"#d4b896"),(9,4,"#a0a0c0"),
-    (5,5,"#6060a0"),(6,5,"#8080c0"),(7,5,"#a0a0e0"),(8,5,"#a0a0e0"),(9,5,"#8080c0"),(10,5,"#6060a0"),
-    (4,6,"#404080"),(5,6,"#6060a0"),(6,6,"#c9a84c"),(7,6,"#8080c0"),(8,6,"#8080c0"),(9,6,"#c9a84c"),(10,6,"#6060a0"),(11,6,"#404080"),
-    (4,7,"#404080"),(5,7,"#6060a0"),(6,7,"#8080c0"),(7,7,"#a0a0e0"),(8,7,"#a0a0e0"),(9,7,"#8080c0"),(10,7,"#6060a0"),(11,7,"#404080"),
-    (5,8,"#303070"),(6,8,"#6060a0"),(7,8,"#8080c0"),(8,8,"#8080c0"),(9,8,"#6060a0"),(10,8,"#303070"),
-    (11,3,"#e0e0e0"),(12,2,"#f0f0f0"),(13,1,"#ffffff"),
-    (11,4,"#c0c0c0"),(10,4,"#c9a84c"),(11,5,"#c9a84c"),
-    (5,9,"#303070"),(6,9,"#505090"),(7,9,"#303070"),(8,9,"#303070"),(9,9,"#505090"),(10,9,"#303070"),
-    (5,10,"#202060"),(6,10,"#404080"),(7,10,"#202060"),(8,10,"#202060"),(9,10,"#404080"),(10,10,"#202060"),
-    (5,11,"#181850"),(6,11,"#303070"),(9,11,"#303070"),(10,11,"#181850"),
-    (5,12,"#101040"),(6,12,"#202060"),(9,12,"#202060"),(10,12,"#101040"),
-]
-MAGE_PX = [
-    (7,1,"#4a0080"),(8,1,"#c9a84c"),
-    (6,2,"#6000a0"),(7,2,"#8000d0"),(8,2,"#8000d0"),(9,2,"#6000a0"),
-    (5,3,"#5000a0"),(6,3,"#7000c0"),(7,3,"#9000f0"),(8,3,"#9000f0"),(9,3,"#7000c0"),(10,3,"#5000a0"),
-    (6,4,"#d4b896"),(7,4,"#e8cca8"),(8,4,"#e8cca8"),(9,4,"#d4b896"),
-    (6,5,"#d4b896"),(7,5,"#20a0ff"),(8,5,"#20a0ff"),(9,5,"#d4b896"),
-    (6,6,"#c4a886"),(7,6,"#d4b896"),(8,6,"#d4b896"),(9,6,"#c4a886"),
-    (5,7,"#3000a0"),(6,7,"#5000c0"),(7,7,"#6000e0"),(8,7,"#6000e0"),(9,7,"#5000c0"),(10,7,"#3000a0"),
-    (4,8,"#2000a0"),(5,8,"#4000c0"),(6,8,"#00e5ff"),(7,8,"#5000d0"),(8,8,"#5000d0"),(9,8,"#00e5ff"),(10,8,"#4000c0"),(11,8,"#2000a0"),
-    (4,9,"#2000a0"),(5,9,"#4000c0"),(6,9,"#5000d0"),(7,9,"#6000e0"),(8,9,"#6000e0"),(9,9,"#5000d0"),(10,9,"#4000c0"),(11,9,"#2000a0"),
-    (5,10,"#3000a0"),(6,10,"#4000c0"),(7,10,"#5000d0"),(8,10,"#5000d0"),(9,10,"#4000c0"),(10,10,"#3000a0"),
-    (12,5,"#00e5ff"),(13,4,"#80f0ff"),(12,4,"#00e5ff"),(13,3,"#ffffff"),(12,3,"#80f0ff"),
-    (11,6,"#4000c0"),(12,6,"#6000e0"),(11,7,"#3000a0"),
-    (6,11,"#3000a0"),(7,11,"#2000a0"),(8,11,"#2000a0"),(9,11,"#3000a0"),
-    (6,12,"#2000a0"),(9,12,"#2000a0"),
-]
-BERSERK_PX = [
-    (4,1,"#8b0000"),(5,1,"#a00000"),(8,1,"#a00000"),(9,1,"#8b0000"),(11,1,"#8b0000"),
-    (5,2,"#c00000"),(6,2,"#8b0000"),(7,2,"#8b0000"),(8,2,"#8b0000"),(9,2,"#c00000"),(10,2,"#8b0000"),
-    (5,3,"#d4b896"),(6,3,"#d4b896"),(7,3,"#e8cca8"),(8,3,"#e8cca8"),(9,3,"#d4b896"),(10,3,"#d4b896"),
-    (5,4,"#d4b896"),(6,4,"#ff4040"),(7,4,"#d4b896"),(8,4,"#d4b896"),(9,4,"#ff4040"),(10,4,"#d4b896"),
-    (5,5,"#c4a886"),(6,5,"#d4b896"),(7,5,"#8b0000"),(8,5,"#8b0000"),(9,5,"#d4b896"),(10,5,"#c4a886"),
-    (4,6,"#6b3a2a"),(5,6,"#8b4a3a"),(6,6,"#a05a4a"),(7,6,"#b06a5a"),(8,6,"#b06a5a"),(9,6,"#a05a4a"),(10,6,"#8b4a3a"),(11,6,"#6b3a2a"),
-    (3,7,"#5b2a1a"),(4,7,"#7b3a2a"),(5,7,"#ff6a00"),(6,7,"#8b4a3a"),(7,7,"#a05a4a"),(8,7,"#a05a4a"),(9,7,"#8b4a3a"),(10,7,"#ff6a00"),(11,7,"#7b3a2a"),(12,7,"#5b2a1a"),
-    (3,8,"#4b1a0a"),(4,8,"#6b2a1a"),(5,8,"#8b3a2a"),(6,8,"#a04a3a"),(7,8,"#b05a4a"),(8,8,"#b05a4a"),(9,8,"#a04a3a"),(10,8,"#8b3a2a"),(11,8,"#6b2a1a"),(12,8,"#4b1a0a"),
-    (13,5,"#808080"),(14,4,"#a0a0a0"),(14,5,"#c0c0c0"),(14,6,"#a0a0a0"),(13,6,"#808080"),
-    (12,6,"#c9a84c"),(12,7,"#c9a84c"),(12,8,"#c9a84c"),
-    (5,9,"#5b2a1a"),(6,9,"#6b3a2a"),(7,9,"#4b1a0a"),(8,9,"#4b1a0a"),(9,9,"#6b3a2a"),(10,9,"#5b2a1a"),
-    (5,10,"#4b1a0a"),(6,10,"#5b2a1a"),(9,10,"#5b2a1a"),(10,10,"#4b1a0a"),
-    (5,11,"#3b0a00"),(6,11,"#4b1a0a"),(9,11,"#4b1a0a"),(10,11,"#3b0a00"),
-]
-ASSASSIN_PX = [
-    (6,1,"#1a1a2e"),(7,1,"#2a2a3e"),(8,1,"#2a2a3e"),(9,1,"#1a1a2e"),
-    (5,2,"#1a1a2e"),(6,2,"#2a2a3e"),(7,2,"#3a3a4e"),(8,2,"#3a3a4e"),(9,2,"#2a2a3e"),(10,2,"#1a1a2e"),
-    (5,3,"#1a1a2e"),(6,3,"#2a2a3e"),(7,3,"#d4b896"),(8,3,"#d4b896"),(9,3,"#2a2a3e"),(10,3,"#1a1a2e"),
-    (5,4,"#1a1a2e"),(6,4,"#d4b896"),(7,4,"#ff3333"),(8,4,"#ff3333"),(9,4,"#d4b896"),(10,4,"#1a1a2e"),
-    (5,5,"#1a1a2e"),(6,5,"#2a2a3e"),(7,5,"#d4b896"),(8,5,"#d4b896"),(9,5,"#2a2a3e"),(10,5,"#1a1a2e"),
-    (5,6,"#0a0a1a"),(6,6,"#1a1a2e"),(7,6,"#2a2a3e"),(8,6,"#2a2a3e"),(9,6,"#1a1a2e"),(10,6,"#0a0a1a"),
-    (4,7,"#0a0a1a"),(5,7,"#1a1a2e"),(6,7,"#c9a84c"),(7,7,"#2a2a3e"),(8,7,"#2a2a3e"),(9,7,"#c9a84c"),(10,7,"#1a1a2e"),(11,7,"#0a0a1a"),
-    (4,8,"#0a0a1a"),(5,8,"#1a1a2e"),(6,8,"#2a2a3e"),(7,8,"#3a3a4e"),(8,8,"#3a3a4e"),(9,8,"#2a2a3e"),(10,8,"#1a1a2e"),(11,8,"#0a0a1a"),
-    (11,5,"#c0c0c0"),(12,4,"#e0e0e0"),(13,3,"#ffffff"),
-    (3,5,"#c0c0c0"),(2,4,"#e0e0e0"),(1,3,"#ffffff"),
-    (5,9,"#0a0a1a"),(6,9,"#1a1a2e"),(7,9,"#0a0a1a"),(8,9,"#0a0a1a"),(9,9,"#1a1a2e"),(10,9,"#0a0a1a"),
-    (5,10,"#0a0a1a"),(6,10,"#1a1a2e"),(9,10,"#1a1a2e"),(10,10,"#0a0a1a"),
-    (5,11,"#050510"),(6,11,"#0a0a1a"),(9,11,"#0a0a1a"),(10,11,"#050510"),
-]
-SKELETON_PX = [
-    (7,1,"#e8e8e8"),(8,1,"#e8e8e8"),
-    (6,2,"#d0d0d0"),(7,2,"#f0f0f0"),(8,2,"#f0f0f0"),(9,2,"#d0d0d0"),
-    (6,3,"#d0d0d0"),(7,3,"#202020"),(8,3,"#202020"),(9,3,"#d0d0d0"),
-    (6,4,"#c0c0c0"),(7,4,"#f0f0f0"),(8,4,"#f0f0f0"),(9,4,"#c0c0c0"),
-    (6,5,"#d0d0d0"),(7,5,"#b0b0b0"),(8,5,"#b0b0b0"),(9,5,"#d0d0d0"),
-    (5,6,"#c0c0c0"),(7,6,"#e0e0e0"),(8,6,"#e0e0e0"),(10,6,"#c0c0c0"),
-    (5,7,"#b0b0b0"),(6,7,"#c0c0c0"),(7,7,"#d0d0d0"),(8,7,"#d0d0d0"),(9,7,"#c0c0c0"),(10,7,"#b0b0b0"),
-    (5,8,"#c0c0c0"),(7,8,"#e0e0e0"),(8,8,"#e0e0e0"),(10,8,"#c0c0c0"),
-    (5,9,"#b0b0b0"),(6,9,"#c0c0c0"),(9,9,"#c0c0c0"),(10,9,"#b0b0b0"),
-    (6,10,"#c0c0c0"),(7,10,"#a0a0a0"),(8,10,"#a0a0a0"),(9,10,"#c0c0c0"),
-    (6,11,"#b0b0b0"),(7,11,"#909090"),(8,11,"#909090"),(9,11,"#b0b0b0"),
-    (6,12,"#808080"),(9,12,"#808080"),
-    (11,4,"#d0d0d0"),(12,3,"#e8e8e8"),(13,2,"#ffffff"),
-    (10,5,"#a0a0a0"),(11,5,"#b0b0b0"),
-]
-MONSTER_PX = [
-    (5,1,"#8b0000"),(4,1,"#a00000"),(10,1,"#8b0000"),(11,1,"#a00000"),
-    (5,2,"#2d5a1b"),(6,2,"#3d7a2b"),(7,2,"#4d8a3b"),(8,2,"#4d8a3b"),(9,2,"#3d7a2b"),(10,2,"#2d5a1b"),
-    (4,3,"#2d5a1b"),(5,3,"#3d7a2b"),(6,3,"#ff4040"),(7,3,"#4d8a3b"),(8,3,"#4d8a3b"),(9,3,"#ff4040"),(10,3,"#3d7a2b"),(11,3,"#2d5a1b"),
-    (4,4,"#2d5a1b"),(5,4,"#3d7a2b"),(6,4,"#4d8a3b"),(7,4,"#ff8800"),(8,4,"#ff8800"),(9,4,"#4d8a3b"),(10,4,"#3d7a2b"),(11,4,"#2d5a1b"),
-    (4,5,"#1d4a0b"),(5,5,"#2d5a1b"),(6,5,"#ffffff"),(7,5,"#3d7a2b"),(8,5,"#3d7a2b"),(9,5,"#ffffff"),(10,5,"#2d5a1b"),(11,5,"#1d4a0b"),
-    (4,6,"#1d4a0b"),(5,6,"#2d5a1b"),(6,6,"#3d7a2b"),(7,6,"#4d8a3b"),(8,6,"#4d8a3b"),(9,6,"#3d7a2b"),(10,6,"#2d5a1b"),(11,6,"#1d4a0b"),
-    (3,7,"#1a3a08"),(4,7,"#2d5a1b"),(5,7,"#c0392b"),(6,7,"#3d7a2b"),(7,7,"#4d8a3b"),(8,7,"#4d8a3b"),(9,7,"#3d7a2b"),(10,7,"#c0392b"),(11,7,"#2d5a1b"),(12,7,"#1a3a08"),
-    (3,8,"#1a3a08"),(4,8,"#2d5a1b"),(5,8,"#3d7a2b"),(6,8,"#4d8a3b"),(7,8,"#5d9a4b"),(8,8,"#5d9a4b"),(9,8,"#4d8a3b"),(10,8,"#3d7a2b"),(11,8,"#2d5a1b"),(12,8,"#1a3a08"),
-    (3,9,"#8b0000"),(2,10,"#a00000"),(3,10,"#8b0000"),(12,9,"#8b0000"),(13,10,"#a00000"),(12,10,"#8b0000"),
-    (5,9,"#1d4a0b"),(6,9,"#2d5a1b"),(7,9,"#1d4a0b"),(8,9,"#1d4a0b"),(9,9,"#2d5a1b"),(10,9,"#1d4a0b"),
-    (5,10,"#1a3a08"),(6,10,"#2d5a1b"),(9,10,"#2d5a1b"),(10,10,"#1a3a08"),
-    (5,11,"#101808"),(6,11,"#1a3a08"),(9,11,"#1a3a08"),(10,11,"#101808"),
-]
-DRAGON_PX = [
-    (1,3,"#8b0000"),(2,2,"#a00000"),(2,3,"#8b0000"),(3,2,"#c00000"),(3,3,"#a00000"),(1,4,"#700000"),(2,4,"#8b0000"),(3,4,"#8b0000"),
-    (13,3,"#8b0000"),(12,2,"#a00000"),(12,3,"#8b0000"),(11,2,"#c00000"),(11,3,"#a00000"),(13,4,"#700000"),(12,4,"#8b0000"),(11,4,"#8b0000"),
-    (5,2,"#c0392b"),(6,2,"#e74c3c"),(7,2,"#ff5555"),(8,2,"#ff5555"),(9,2,"#e74c3c"),(10,2,"#c0392b"),
-    (5,3,"#e74c3c"),(6,3,"#ff8800"),(7,3,"#e74c3c"),(8,3,"#e74c3c"),(9,3,"#ff8800"),(10,3,"#e74c3c"),
-    (4,4,"#c0392b"),(5,4,"#e74c3c"),(6,4,"#ff8800"),(7,4,"#ffcc00"),(8,4,"#ffcc00"),(9,4,"#ff8800"),(10,4,"#e74c3c"),(11,4,"#c0392b"),
-    (4,5,"#ff8800"),(3,5,"#ffcc00"),(2,5,"#ff4400"),(1,5,"#ff8800"),(3,6,"#ffcc00"),(2,6,"#ff8800"),
-    (5,5,"#c0392b"),(6,5,"#e74c3c"),(7,5,"#ff5555"),(8,5,"#ff5555"),(9,5,"#e74c3c"),(10,5,"#c0392b"),
-    (5,6,"#a0392b"),(6,6,"#c0392b"),(7,6,"#e74c3c"),(8,6,"#e74c3c"),(9,6,"#c0392b"),(10,6,"#a0392b"),
-    (5,7,"#a0392b"),(6,7,"#c0392b"),(7,7,"#ffcc00"),(8,7,"#ffcc00"),(9,7,"#c0392b"),(10,7,"#a0392b"),
-    (10,8,"#8b0000"),(11,8,"#a00000"),(12,9,"#8b0000"),(13,10,"#700000"),
-    (5,8,"#8b2a1a"),(6,8,"#a0392b"),(9,8,"#a0392b"),(10,8,"#8b2a1a"),
-    (5,9,"#701a0a"),(6,9,"#8b2a1a"),(9,9,"#8b2a1a"),(10,9,"#701a0a"),
-]
-GHOST_PX = [
-    (7,1,"#aaaaee"),(8,1,"#aaaaee"),
-    (6,2,"#bbbbff"),(7,2,"#ccccff"),(8,2,"#ccccff"),(9,2,"#bbbbff"),
-    (5,3,"#aaaaee"),(6,3,"#00e5ff"),(7,3,"#ccccff"),(8,3,"#ccccff"),(9,3,"#00e5ff"),(10,3,"#aaaaee"),
-    (5,4,"#aaaaee"),(6,4,"#bbbbff"),(7,4,"#ddddff"),(8,4,"#ddddff"),(9,4,"#bbbbff"),(10,4,"#aaaaee"),
-    (5,5,"#9999dd"),(6,5,"#aaaaee"),(7,5,"#bbbbff"),(8,5,"#bbbbff"),(9,5,"#aaaaee"),(10,5,"#9999dd"),
-    (5,6,"#9999dd"),(6,6,"#aaaaee"),(7,6,"#bbbbff"),(8,6,"#bbbbff"),(9,6,"#aaaaee"),(10,6,"#9999dd"),
-    (5,7,"#8888cc"),(6,7,"#9999dd"),(7,7,"#aaaaee"),(8,7,"#aaaaee"),(9,7,"#9999dd"),(10,7,"#8888cc"),
-    (5,8,"#7777bb"),(6,8,"#8888cc"),(7,8,"#7777bb"),(8,8,"#7777bb"),(9,8,"#8888cc"),(10,8,"#7777bb"),
-    (5,9,"#6666aa"),(7,9,"#5555aa"),(8,9,"#5555aa"),(10,9,"#6666aa"),
-    (6,10,"#5555aa"),(9,10,"#5555aa"),
-]
+WARRIOR_PX = [(6,1,"#a0a0c0"),(7,1,"#c0c0e0"),(8,1,"#c0c0e0"),(9,1,"#a0a0c0"),(5,2,"#8080a0"),(6,2,"#c0c0e0"),(7,2,"#e0e0ff"),(8,2,"#e0e0ff"),(9,2,"#c0c0e0"),(10,2,"#8080a0"),(5,3,"#8080a0"),(6,3,"#c9a84c"),(7,3,"#f0d080"),(8,3,"#f0d080"),(9,3,"#c9a84c"),(10,3,"#8080a0"),(6,4,"#a0a0c0"),(7,4,"#d4b896"),(8,4,"#d4b896"),(9,4,"#a0a0c0"),(5,5,"#6060a0"),(6,5,"#8080c0"),(7,5,"#a0a0e0"),(8,5,"#a0a0e0"),(9,5,"#8080c0"),(10,5,"#6060a0"),(4,6,"#404080"),(5,6,"#6060a0"),(6,6,"#c9a84c"),(7,6,"#8080c0"),(8,6,"#8080c0"),(9,6,"#c9a84c"),(10,6,"#6060a0"),(11,6,"#404080"),(4,7,"#404080"),(5,7,"#6060a0"),(6,7,"#8080c0"),(7,7,"#a0a0e0"),(8,7,"#a0a0e0"),(9,7,"#8080c0"),(10,7,"#6060a0"),(11,7,"#404080"),(5,8,"#303070"),(6,8,"#6060a0"),(7,8,"#8080c0"),(8,8,"#8080c0"),(9,8,"#6060a0"),(10,8,"#303070"),(11,3,"#e0e0e0"),(12,2,"#f0f0f0"),(13,1,"#ffffff"),(11,4,"#c0c0c0"),(10,4,"#c9a84c"),(11,5,"#c9a84c"),(5,9,"#303070"),(6,9,"#505090"),(7,9,"#303070"),(8,9,"#303070"),(9,9,"#505090"),(10,9,"#303070"),(5,10,"#202060"),(6,10,"#404080"),(7,10,"#202060"),(8,10,"#202060"),(9,10,"#404080"),(10,10,"#202060"),(5,11,"#181850"),(6,11,"#303070"),(9,11,"#303070"),(10,11,"#181850"),(5,12,"#101040"),(6,12,"#202060"),(9,12,"#202060"),(10,12,"#101040")]
+MAGE_PX = [(7,1,"#4a0080"),(8,1,"#c9a84c"),(6,2,"#6000a0"),(7,2,"#8000d0"),(8,2,"#8000d0"),(9,2,"#6000a0"),(5,3,"#5000a0"),(6,3,"#7000c0"),(7,3,"#9000f0"),(8,3,"#9000f0"),(9,3,"#7000c0"),(10,3,"#5000a0"),(6,4,"#d4b896"),(7,4,"#e8cca8"),(8,4,"#e8cca8"),(9,4,"#d4b896"),(6,5,"#d4b896"),(7,5,"#20a0ff"),(8,5,"#20a0ff"),(9,5,"#d4b896"),(6,6,"#c4a886"),(7,6,"#d4b896"),(8,6,"#d4b896"),(9,6,"#c4a886"),(5,7,"#3000a0"),(6,7,"#5000c0"),(7,7,"#6000e0"),(8,7,"#6000e0"),(9,7,"#5000c0"),(10,7,"#3000a0"),(4,8,"#2000a0"),(5,8,"#4000c0"),(6,8,"#00e5ff"),(7,8,"#5000d0"),(8,8,"#5000d0"),(9,8,"#00e5ff"),(10,8,"#4000c0"),(11,8,"#2000a0"),(4,9,"#2000a0"),(5,9,"#4000c0"),(6,9,"#5000d0"),(7,9,"#6000e0"),(8,9,"#6000e0"),(9,9,"#5000d0"),(10,9,"#4000c0"),(11,9,"#2000a0"),(5,10,"#3000a0"),(6,10,"#4000c0"),(7,10,"#5000d0"),(8,10,"#5000d0"),(9,10,"#4000c0"),(10,10,"#3000a0"),(12,5,"#00e5ff"),(13,4,"#80f0ff"),(12,4,"#00e5ff"),(13,3,"#ffffff"),(12,3,"#80f0ff"),(11,6,"#4000c0"),(12,6,"#6000e0"),(11,7,"#3000a0"),(6,11,"#3000a0"),(7,11,"#2000a0"),(8,11,"#2000a0"),(9,11,"#3000a0"),(6,12,"#2000a0"),(9,12,"#2000a0")]
+BERSERK_PX = [(4,1,"#8b0000"),(5,1,"#a00000"),(8,1,"#a00000"),(9,1,"#8b0000"),(11,1,"#8b0000"),(5,2,"#c00000"),(6,2,"#8b0000"),(7,2,"#8b0000"),(8,2,"#8b0000"),(9,2,"#c00000"),(10,2,"#8b0000"),(5,3,"#d4b896"),(6,3,"#d4b896"),(7,3,"#e8cca8"),(8,3,"#e8cca8"),(9,3,"#d4b896"),(10,3,"#d4b896"),(5,4,"#d4b896"),(6,4,"#ff4040"),(7,4,"#d4b896"),(8,4,"#d4b896"),(9,4,"#ff4040"),(10,4,"#d4b896"),(5,5,"#c4a886"),(6,5,"#d4b896"),(7,5,"#8b0000"),(8,5,"#8b0000"),(9,5,"#d4b896"),(10,5,"#c4a886"),(4,6,"#6b3a2a"),(5,6,"#8b4a3a"),(6,6,"#a05a4a"),(7,6,"#b06a5a"),(8,6,"#b06a5a"),(9,6,"#a05a4a"),(10,6,"#8b4a3a"),(11,6,"#6b3a2a"),(3,7,"#5b2a1a"),(4,7,"#7b3a2a"),(5,7,"#ff6a00"),(6,7,"#8b4a3a"),(7,7,"#a05a4a"),(8,7,"#a05a4a"),(9,7,"#8b4a3a"),(10,7,"#ff6a00"),(11,7,"#7b3a2a"),(12,7,"#5b2a1a"),(3,8,"#4b1a0a"),(4,8,"#6b2a1a"),(5,8,"#8b3a2a"),(6,8,"#a04a3a"),(7,8,"#b05a4a"),(8,8,"#b05a4a"),(9,8,"#a04a3a"),(10,8,"#8b3a2a"),(11,8,"#6b2a1a"),(12,8,"#4b1a0a"),(13,5,"#808080"),(14,4,"#a0a0a0"),(14,5,"#c0c0c0"),(14,6,"#a0a0a0"),(13,6,"#808080"),(12,6,"#c9a84c"),(12,7,"#c9a84c"),(12,8,"#c9a84c"),(5,9,"#5b2a1a"),(6,9,"#6b3a2a"),(7,9,"#4b1a0a"),(8,9,"#4b1a0a"),(9,9,"#6b3a2a"),(10,9,"#5b2a1a"),(5,10,"#4b1a0a"),(6,10,"#5b2a1a"),(9,10,"#5b2a1a"),(10,10,"#4b1a0a"),(5,11,"#3b0a00"),(6,11,"#4b1a0a"),(9,11,"#4b1a0a"),(10,11,"#3b0a00")]
+ASSASSIN_PX = [(6,1,"#1a1a2e"),(7,1,"#2a2a3e"),(8,1,"#2a2a3e"),(9,1,"#1a1a2e"),(5,2,"#1a1a2e"),(6,2,"#2a2a3e"),(7,2,"#3a3a4e"),(8,2,"#3a3a4e"),(9,2,"#2a2a3e"),(10,2,"#1a1a2e"),(5,3,"#1a1a2e"),(6,3,"#2a2a3e"),(7,3,"#d4b896"),(8,3,"#d4b896"),(9,3,"#2a2a3e"),(10,3,"#1a1a2e"),(5,4,"#1a1a2e"),(6,4,"#d4b896"),(7,4,"#ff3333"),(8,4,"#ff3333"),(9,4,"#d4b896"),(10,4,"#1a1a2e"),(5,5,"#1a1a2e"),(6,5,"#2a2a3e"),(7,5,"#d4b896"),(8,5,"#d4b896"),(9,5,"#2a2a3e"),(10,5,"#1a1a2e"),(5,6,"#0a0a1a"),(6,6,"#1a1a2e"),(7,6,"#2a2a3e"),(8,6,"#2a2a3e"),(9,6,"#1a1a2e"),(10,6,"#0a0a1a"),(4,7,"#0a0a1a"),(5,7,"#1a1a2e"),(6,7,"#c9a84c"),(7,7,"#2a2a3e"),(8,7,"#2a2a3e"),(9,7,"#c9a84c"),(10,7,"#1a1a2e"),(11,7,"#0a0a1a"),(4,8,"#0a0a1a"),(5,8,"#1a1a2e"),(6,8,"#2a2a3e"),(7,8,"#3a3a4e"),(8,8,"#3a3a4e"),(9,8,"#2a2a3e"),(10,8,"#1a1a2e"),(11,8,"#0a0a1a"),(11,5,"#c0c0c0"),(12,4,"#e0e0e0"),(13,3,"#ffffff"),(3,5,"#c0c0c0"),(2,4,"#e0e0e0"),(1,3,"#ffffff"),(5,9,"#0a0a1a"),(6,9,"#1a1a2e"),(7,9,"#0a0a1a"),(8,9,"#0a0a1a"),(9,9,"#1a1a2e"),(10,9,"#0a0a1a"),(5,10,"#0a0a1a"),(6,10,"#1a1a2e"),(9,10,"#1a1a2e"),(10,10,"#0a0a1a"),(5,11,"#050510"),(6,11,"#0a0a1a"),(9,11,"#0a0a1a"),(10,11,"#050510")]
+SKELETON_PX = [(7,1,"#e8e8e8"),(8,1,"#e8e8e8"),(6,2,"#d0d0d0"),(7,2,"#f0f0f0"),(8,2,"#f0f0f0"),(9,2,"#d0d0d0"),(6,3,"#d0d0d0"),(7,3,"#202020"),(8,3,"#202020"),(9,3,"#d0d0d0"),(6,4,"#c0c0c0"),(7,4,"#f0f0f0"),(8,4,"#f0f0f0"),(9,4,"#c0c0c0"),(6,5,"#d0d0d0"),(7,5,"#b0b0b0"),(8,5,"#b0b0b0"),(9,5,"#d0d0d0"),(5,6,"#c0c0c0"),(7,6,"#e0e0e0"),(8,6,"#e0e0e0"),(10,6,"#c0c0c0"),(5,7,"#b0b0b0"),(6,7,"#c0c0c0"),(7,7,"#d0d0d0"),(8,7,"#d0d0d0"),(9,7,"#c0c0c0"),(10,7,"#b0b0b0"),(5,8,"#c0c0c0"),(7,8,"#e0e0e0"),(8,8,"#e0e0e0"),(10,8,"#c0c0c0"),(5,9,"#b0b0b0"),(6,9,"#c0c0c0"),(9,9,"#c0c0c0"),(10,9,"#b0b0b0"),(6,10,"#c0c0c0"),(7,10,"#a0a0a0"),(8,10,"#a0a0a0"),(9,10,"#c0c0c0"),(6,11,"#b0b0b0"),(7,11,"#909090"),(8,11,"#909090"),(9,11,"#b0b0b0"),(6,12,"#808080"),(9,12,"#808080"),(11,4,"#d0d0d0"),(12,3,"#e8e8e8"),(13,2,"#ffffff"),(10,5,"#a0a0a0"),(11,5,"#b0b0b0")]
+MONSTER_PX = [(5,1,"#8b0000"),(4,1,"#a00000"),(10,1,"#8b0000"),(11,1,"#a00000"),(5,2,"#2d5a1b"),(6,2,"#3d7a2b"),(7,2,"#4d8a3b"),(8,2,"#4d8a3b"),(9,2,"#3d7a2b"),(10,2,"#2d5a1b"),(4,3,"#2d5a1b"),(5,3,"#3d7a2b"),(6,3,"#ff4040"),(7,3,"#4d8a3b"),(8,3,"#4d8a3b"),(9,3,"#ff4040"),(10,3,"#3d7a2b"),(11,3,"#2d5a1b"),(4,4,"#2d5a1b"),(5,4,"#3d7a2b"),(6,4,"#4d8a3b"),(7,4,"#ff8800"),(8,4,"#ff8800"),(9,4,"#4d8a3b"),(10,4,"#3d7a2b"),(11,4,"#2d5a1b"),(4,5,"#1d4a0b"),(5,5,"#2d5a1b"),(6,5,"#ffffff"),(7,5,"#3d7a2b"),(8,5,"#3d7a2b"),(9,5,"#ffffff"),(10,5,"#2d5a1b"),(11,5,"#1d4a0b"),(4,6,"#1d4a0b"),(5,6,"#2d5a1b"),(6,6,"#3d7a2b"),(7,6,"#4d8a3b"),(8,6,"#4d8a3b"),(9,6,"#3d7a2b"),(10,6,"#2d5a1b"),(11,6,"#1d4a0b"),(3,7,"#1a3a08"),(4,7,"#2d5a1b"),(5,7,"#c0392b"),(6,7,"#3d7a2b"),(7,7,"#4d8a3b"),(8,7,"#4d8a3b"),(9,7,"#3d7a2b"),(10,7,"#c0392b"),(11,7,"#2d5a1b"),(12,7,"#1a3a08"),(3,8,"#1a3a08"),(4,8,"#2d5a1b"),(5,8,"#3d7a2b"),(6,8,"#4d8a3b"),(7,8,"#5d9a4b"),(8,8,"#5d9a4b"),(9,8,"#4d8a3b"),(10,8,"#3d7a2b"),(11,8,"#2d5a1b"),(12,8,"#1a3a08"),(3,9,"#8b0000"),(2,10,"#a00000"),(3,10,"#8b0000"),(12,9,"#8b0000"),(13,10,"#a00000"),(12,10,"#8b0000"),(5,9,"#1d4a0b"),(6,9,"#2d5a1b"),(7,9,"#1d4a0b"),(8,9,"#1d4a0b"),(9,9,"#2d5a1b"),(10,9,"#1d4a0b"),(5,10,"#1a3a08"),(6,10,"#2d5a1b"),(9,10,"#2d5a1b"),(10,10,"#1a3a08"),(5,11,"#101808"),(6,11,"#1a3a08"),(9,11,"#1a3a08"),(10,11,"#101808")]
+DRAGON_PX = [(1,3,"#8b0000"),(2,2,"#a00000"),(2,3,"#8b0000"),(3,2,"#c00000"),(3,3,"#a00000"),(1,4,"#700000"),(2,4,"#8b0000"),(3,4,"#8b0000"),(13,3,"#8b0000"),(12,2,"#a00000"),(12,3,"#8b0000"),(11,2,"#c00000"),(11,3,"#a00000"),(13,4,"#700000"),(12,4,"#8b0000"),(11,4,"#8b0000"),(5,2,"#c0392b"),(6,2,"#e74c3c"),(7,2,"#ff5555"),(8,2,"#ff5555"),(9,2,"#e74c3c"),(10,2,"#c0392b"),(5,3,"#e74c3c"),(6,3,"#ff8800"),(7,3,"#e74c3c"),(8,3,"#e74c3c"),(9,3,"#ff8800"),(10,3,"#e74c3c"),(4,4,"#c0392b"),(5,4,"#e74c3c"),(6,4,"#ff8800"),(7,4,"#ffcc00"),(8,4,"#ffcc00"),(9,4,"#ff8800"),(10,4,"#e74c3c"),(11,4,"#c0392b"),(4,5,"#ff8800"),(3,5,"#ffcc00"),(2,5,"#ff4400"),(1,5,"#ff8800"),(3,6,"#ffcc00"),(2,6,"#ff8800"),(5,5,"#c0392b"),(6,5,"#e74c3c"),(7,5,"#ff5555"),(8,5,"#ff5555"),(9,5,"#e74c3c"),(10,5,"#c0392b"),(5,6,"#a0392b"),(6,6,"#c0392b"),(7,6,"#e74c3c"),(8,6,"#e74c3c"),(9,6,"#c0392b"),(10,6,"#a0392b"),(5,7,"#a0392b"),(6,7,"#c0392b"),(7,7,"#ffcc00"),(8,7,"#ffcc00"),(9,7,"#c0392b"),(10,7,"#a0392b"),(10,8,"#8b0000"),(11,8,"#a00000"),(12,9,"#8b0000"),(13,10,"#700000"),(5,8,"#8b2a1a"),(6,8,"#a0392b"),(9,8,"#a0392b"),(10,8,"#8b2a1a"),(5,9,"#701a0a"),(6,9,"#8b2a1a"),(9,9,"#8b2a1a"),(10,9,"#701a0a")]
+GHOST_PX = [(7,1,"#aaaaee"),(8,1,"#aaaaee"),(6,2,"#bbbbff"),(7,2,"#ccccff"),(8,2,"#ccccff"),(9,2,"#bbbbff"),(5,3,"#aaaaee"),(6,3,"#00e5ff"),(7,3,"#ccccff"),(8,3,"#ccccff"),(9,3,"#00e5ff"),(10,3,"#aaaaee"),(5,4,"#aaaaee"),(6,4,"#bbbbff"),(7,4,"#ddddff"),(8,4,"#ddddff"),(9,4,"#bbbbff"),(10,4,"#aaaaee"),(5,5,"#9999dd"),(6,5,"#aaaaee"),(7,5,"#bbbbff"),(8,5,"#bbbbff"),(9,5,"#aaaaee"),(10,5,"#9999dd"),(5,6,"#9999dd"),(6,6,"#aaaaee"),(7,6,"#bbbbff"),(8,6,"#bbbbff"),(9,6,"#aaaaee"),(10,6,"#9999dd"),(5,7,"#8888cc"),(6,7,"#9999dd"),(7,7,"#aaaaee"),(8,7,"#aaaaee"),(9,7,"#9999dd"),(10,7,"#8888cc"),(5,8,"#7777bb"),(6,8,"#8888cc"),(7,8,"#7777bb"),(8,8,"#7777bb"),(9,8,"#8888cc"),(10,8,"#7777bb"),(5,9,"#6666aa"),(7,9,"#5555aa"),(8,9,"#5555aa"),(10,9,"#6666aa"),(6,10,"#5555aa"),(9,10,"#5555aa")]
 
 def _enemy_sprite_px(enemy_name: str):
     n = enemy_name.lower()
-    if any(k in n for k in ("esqueleto","torto","osso")):   return SKELETON_PX
-    if any(k in n for k in ("dragão","dragao","dragon")):   return DRAGON_PX
-    if any(k in n for k in ("espectro","fantasma","sombra","arcanista","lich","devorador")):
-        return GHOST_PX
+    if any(k in n for k in ("esqueleto","torto","osso")): return SKELETON_PX
+    if any(k in n for k in ("dragão","dragao","dragon")): return DRAGON_PX
+    if any(k in n for k in ("espectro","fantasma","sombra","arcanista","lich","devorador")): return GHOST_PX
     return MONSTER_PX
 
 def _hero_sprite_px(hero_class: str):
-    return {"Guerreiro": WARRIOR_PX, "Mago": MAGE_PX,
-            "Berserker": BERSERK_PX, "Assassino": ASSASSIN_PX}.get(hero_class, WARRIOR_PX)
-
+    return {"Guerreiro": WARRIOR_PX, "Mago": MAGE_PX, "Berserker": BERSERK_PX, "Assassino": ASSASSIN_PX}.get(hero_class, WARRIOR_PX)
 
 # ============================================================
-# ARENA RENDERER  — st.components.v1.html (zero Streamlit escaping)
+# ARENA RENDERER — st.components.v1.html
 # ============================================================
 def render_arena(enemy):
-    ss        = st.session_state
-    anim_cls  = ss.get('arena_anim', ANIM_NONE)
-    dmg_hero  = ss.get('arena_dmg_hero')
+    ss = st.session_state
+    anim_cls = ss.get('arena_anim', ANIM_NONE)
+    dmg_hero = ss.get('arena_dmg_hero')
     dmg_enemy = ss.get('arena_dmg_enemy')
-    dmg_kind  = ss.get('arena_dmg_kind', '')
-
+    dmg_kind = ss.get('arena_dmg_kind', '')
     display_enemy = enemy or ss.get('dying_enemy')
-    hero_hp_pct   = ss.hp / ss.max_hp
-    enemy_hp_pct  = (max(0, display_enemy['hp']) / display_enemy['max_hp']) if display_enemy else 0
-
+    hero_hp_pct = ss.hp / ss.max_hp
+    enemy_hp_pct = (max(0, display_enemy['hp']) / display_enemy['max_hp']) if display_enemy else 0
     SCALE = 3
-    hero_shadow  = _px_to_shadow(_hero_sprite_px(ss.hero_class), SCALE)
+    hero_shadow = _px_to_shadow(_hero_sprite_px(ss.hero_class), SCALE)
     enemy_shadow = _px_to_shadow(_enemy_sprite_px(display_enemy['name'] if display_enemy else ""), SCALE) if display_enemy else ""
-
     enemy_name_clean = ""
     if display_enemy:
         parts = display_enemy['name'].split(' ', 1)
         enemy_name_clean = parts[1] if len(parts) > 1 else parts[0]
-
     dmg_html = ""
     if dmg_enemy is not None:
         color = "#00e5ff" if "magic" in dmg_kind else "#ff9944"
         dmg_html += f'<div class="dmg-num" style="right:20%;bottom:110px;color:{color}">-{dmg_enemy}</div>'
     if dmg_hero is not None:
         dmg_html += f'<div class="dmg-num" style="left:20%;bottom:110px;color:#ff4444">-{dmg_hero}</div>'
-
     stun_html = ""
     if display_enemy and display_enemy.get('stunned'):
         stun_html = '<div class="stun-pop" style="right:16%;bottom:155px">STUN!</div>'
-
     enemy_block = ""
     if display_enemy:
         ep = enemy_hp_pct * 100
@@ -908,134 +831,17 @@ def render_arena(enemy):
           <div class="px-sprite sprite-enemy" style="box-shadow:{enemy_shadow}"></div>
           <div class="sprite-lbl" style="color:#e74c3c">{enemy_name_clean}</div>
         </div>"""
-
     hhp = hero_hp_pct * 100
-
-    html = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8">
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600&display=swap');
-*{{box-sizing:border-box;margin:0;padding:0;}}
-body{{background:transparent;overflow:hidden;}}
-.arena{{
-  position:relative;
-  background:linear-gradient(180deg,#0d0508 0%,#1a0a10 60%,#0a0305 100%);
-  border:1px solid rgba(192,57,43,.3);border-radius:14px;
-  padding:14px 16px 0;overflow:hidden;height:230px;
-  box-shadow:0 0 40px rgba(0,0,0,.9),inset 0 0 60px rgba(100,0,0,.1);
-  font-family:'Cinzel',serif;
-}}
-.arena::before{{content:'';position:absolute;bottom:60px;left:0;right:0;height:2px;
-  background:linear-gradient(90deg,transparent,rgba(201,168,76,.12),rgba(201,168,76,.22),rgba(201,168,76,.12),transparent);}}
-.arena::after{{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;
-  background:linear-gradient(0deg,rgba(10,3,8,.95),transparent);pointer-events:none;z-index:2;}}
-.hp-row{{display:flex;align-items:center;gap:8px;margin-bottom:5px;z-index:5;position:relative;}}
-.hp-lbl{{font-size:10px;letter-spacing:.05em;color:#8a7060;min-width:80px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}
-.hp-track{{flex:1;height:9px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;
-  box-shadow:inset 0 2px 3px rgba(0,0,0,.6);}}
-.hp-fill{{height:100%;border-radius:5px;transition:width .5s ease;}}
-.hero-fill{{background:linear-gradient(90deg,#7b0000,#c0392b 60%,#e74c3c);box-shadow:0 0 6px rgba(192,57,43,.7);}}
-.enemy-fill{{background:linear-gradient(90deg,#5a0000,#8b0000 60%,#b00000);box-shadow:0 0 6px rgba(139,0,0,.7);}}
-.hp-val{{font-size:9px;color:#d4b896;min-width:52px;text-align:right;}}
-.vs{{position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);
-  font-family:'Cinzel Decorative',serif;font-size:11px;color:rgba(201,168,76,.2);
-  letter-spacing:.18em;z-index:1;}}
-.px-sprite{{width:{SCALE}px;height:{SCALE}px;position:relative;image-rendering:pixelated;}}
-.sprite-wrap{{position:absolute;bottom:60px;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:3;}}
-.hero-wrap{{left:13%;}}
-.enemy-wrap{{right:13%;}}
-.sprite-lbl{{font-family:'Cinzel Decorative',serif;font-size:9px;letter-spacing:.07em;
-  white-space:nowrap;text-shadow:0 0 8px currentColor;}}
-.hero-wrap .sprite-lbl{{color:#c9a84c;}}
-.dmg-num{{position:absolute;font-family:'Cinzel Decorative',serif;font-weight:900;font-size:18px;
-  pointer-events:none;z-index:20;animation:dmg-float 1s ease forwards;text-shadow:0 0 8px currentColor;}}
-@keyframes dmg-float{{
-  0%  {{opacity:1;transform:translateY(0) scale(1.2);}}
-  40% {{opacity:1;transform:translateY(-22px) scale(1);}}
-  80% {{opacity:.6;transform:translateY(-36px) scale(.85);}}
-  100%{{opacity:0;transform:translateY(-48px) scale(.7);}}
-}}
-.stun-pop{{position:absolute;font-family:'Cinzel Decorative',serif;font-size:11px;
-  color:#ffcc00;text-shadow:0 0 10px rgba(255,200,0,.8);
-  animation:stun-float .8s ease forwards;z-index:20;}}
-@keyframes stun-float{{0%{{opacity:1;transform:translateY(0) scale(1.1);}}100%{{opacity:0;transform:translateY(-28px) scale(.8);}}}}
-
-/* ── HERO ANIMS ── */
-.anim-hero-attack .sprite-hero{{animation:hero-slash .55s ease forwards;}}
-@keyframes hero-slash{{0%{{transform:translateX(0) scaleX(1);}}25%{{transform:translateX(6px) scaleX(1.1);}}50%{{transform:translateX(55px) scaleX(1.15);}}70%{{transform:translateX(46px) scaleX(1.05);}}100%{{transform:translateX(0) scaleX(1);}}}}
-.anim-hero-magic .sprite-hero{{animation:hero-cast .65s ease forwards;}}
-@keyframes hero-cast{{0%{{transform:translateY(0) scale(1);filter:brightness(1);}}35%{{transform:translateY(-12px) scale(1.15);filter:brightness(2) hue-rotate(200deg);}}65%{{transform:translateY(-7px) scale(1.1);filter:brightness(1.7) hue-rotate(180deg);}}100%{{transform:translateY(0) scale(1);filter:brightness(1);}}}}
-.anim-hero-fury .sprite-hero{{animation:fury-aura .5s ease forwards;}}
-@keyframes fury-aura{{0%,100%{{filter:brightness(1);transform:scale(1);}}30%{{filter:brightness(2.5) sepia(1) hue-rotate(-20deg);transform:scale(1.18);}}60%{{filter:brightness(1.8) sepia(.8) hue-rotate(-10deg);transform:scale(1.1);}}}}
-.anim-hero-hit .sprite-hero{{animation:hero-hurt .45s ease forwards;}}
-@keyframes hero-hurt{{0%,100%{{transform:translateX(0);filter:brightness(1);}}15%{{transform:translateX(-10px);filter:brightness(3) sepia(1) hue-rotate(-30deg);}}35%{{transform:translateX(7px);}}55%{{transform:translateX(-5px);}}75%{{transform:translateX(3px);}}}}
-.anim-hero-block .sprite-hero{{animation:hero-block .5s ease forwards;}}
-@keyframes hero-block{{0%,100%{{transform:translateX(0);filter:brightness(1);}}30%{{transform:translateX(10px);filter:brightness(2) sepia(1) saturate(2);}}60%{{transform:translateX(5px);filter:brightness(1.4);}}}}
-.anim-hero-dodge .sprite-hero{{animation:hero-dodge .5s ease forwards;}}
-@keyframes hero-dodge{{0%{{transform:translate(0,0) rotate(0deg);}}30%{{transform:translate(-20px,-16px) rotate(-10deg);}}60%{{transform:translate(-13px,-8px) rotate(-5deg);}}100%{{transform:translate(0,0) rotate(0deg);}}}}
-.anim-hero-death .sprite-hero{{animation:hero-die 1.1s ease forwards;}}
-@keyframes hero-die{{0%{{transform:translate(0,0) rotate(0deg) scale(1);opacity:1;filter:brightness(1);}}20%{{transform:translate(0,-12px) rotate(-8deg) scale(1.06);filter:brightness(3) sepia(1) hue-rotate(-30deg);}}55%{{transform:translate(2px,5px) rotate(-25deg) scale(.9);opacity:.8;}}80%{{transform:translate(4px,15px) rotate(-55deg) scale(.65);opacity:.35;}}100%{{transform:translate(4px,22px) rotate(-90deg) scale(.25);opacity:0;}}}}
-
-/* ── ENEMY ANIMS ── */
-.anim-enemy-hit .sprite-enemy{{animation:enemy-hurt .45s ease forwards;}}
-@keyframes enemy-hurt{{0%,100%{{transform:scaleX(-1);filter:brightness(1);}}15%{{transform:scaleX(-1) translateX(-8px);filter:brightness(3) sepia(1) hue-rotate(-30deg);}}35%{{transform:scaleX(-1) translateX(5px);}}55%{{transform:scaleX(-1) translateX(-4px);}}75%{{transform:scaleX(-1) translateX(2px);}}}}
-.anim-enemy-stun .sprite-enemy{{animation:enemy-stun .65s ease forwards;}}
-@keyframes enemy-stun{{0%,100%{{transform:scaleX(-1) rotate(0deg);}}20%{{transform:scaleX(-1) rotate(12deg) translateY(-5px);}}40%{{transform:scaleX(-1) rotate(-10deg) translateY(2px);}}60%{{transform:scaleX(-1) rotate(7deg);}}80%{{transform:scaleX(-1) rotate(-4deg);}}}}
-.anim-enemy-death .sprite-enemy{{animation:enemy-die .9s ease forwards;}}
-@keyframes enemy-die{{0%{{transform:scaleX(-1) scale(1) translateY(0);opacity:1;filter:brightness(1);}}20%{{transform:scaleX(-1) scale(1.18) translateY(-10px);filter:brightness(4) sepia(1) hue-rotate(-10deg);opacity:1;}}55%{{transform:scaleX(-1) scale(.8) translateY(5px) rotate(18deg);opacity:.7;}}80%{{transform:scaleX(-1) scale(.35) translateY(20px) rotate(45deg);opacity:.2;}}100%{{transform:scaleX(-1) scale(0) translateY(26px) rotate(65deg);opacity:0;}}}}
-
-/* ── FLASH ── */
-.flash{{position:absolute;inset:0;border-radius:14px;pointer-events:none;z-index:10;}}
-.anim-hero-attack .flash,.anim-hero-fury .flash{{animation:fl-red .55s ease forwards;}}
-.anim-hero-magic .flash{{animation:fl-blue .65s ease forwards;}}
-.anim-hero-hit .flash,.anim-hero-death .flash{{animation:fl-dmg .5s ease forwards;}}
-.anim-enemy-death .flash{{animation:fl-gold .9s ease forwards;}}
-@keyframes fl-red{{0%,100%{{background:transparent;}}40%{{background:rgba(192,57,43,.15);}}}}
-@keyframes fl-blue{{0%,100%{{background:transparent;}}40%{{background:rgba(0,229,255,.18);}}}}
-@keyframes fl-dmg{{0%,100%{{background:transparent;}}30%{{background:rgba(220,20,20,.2);}}}}
-@keyframes fl-gold{{0%,100%{{background:transparent;}}30%{{background:rgba(255,60,60,.2);}}50%{{background:rgba(201,168,76,.14);}}}}
-
-/* magic bolt */
-.magic-bolt{{display:none;position:absolute;bottom:78px;left:28%;
-  width:8px;height:8px;border-radius:50%;background:#00e5ff;
-  box-shadow:0 0 12px 4px rgba(0,229,255,.8);z-index:5;}}
-.anim-hero-magic .magic-bolt{{display:block;animation:bolt .55s ease forwards;}}
-@keyframes bolt{{0%{{transform:translateX(0) scale(.5);opacity:1;}}60%{{transform:translateX(150px) scale(1.4);opacity:1;}}100%{{transform:translateX(220px) scale(.2);opacity:0;}}}}
-</style>
-</head>
-<body>
-<div class="arena {anim_cls}">
-  <div class="hp-row">
-    <span class="hp-lbl">{ss.hero_class}</span>
-    <div class="hp-track"><div class="hp-fill hero-fill" style="width:{hhp:.1f}%"></div></div>
-    <span class="hp-val">{ss.hp}/{ss.max_hp}</span>
-  </div>
-  {enemy_block}
-  <div class="vs">VS</div>
-  <div class="sprite-wrap hero-wrap">
-    <div class="px-sprite sprite-hero" style="box-shadow:{hero_shadow}"></div>
-    <div class="sprite-lbl" style="color:#c9a84c">{ss.hero_class}</div>
-  </div>
-  <div class="magic-bolt"></div>
-  <div class="flash"></div>
-  {dmg_html}
-  {stun_html}
-</div>
-</body></html>"""
-
+    html = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"><style>@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600&display=swap');*{{box-sizing:border-box;margin:0;padding:0;}}body{{background:transparent;overflow:hidden;}}.arena{{position:relative;background:linear-gradient(180deg,#0d0508 0%,#1a0a10 60%,#0a0305 100%);border:1px solid rgba(192,57,43,.3);border-radius:14px;padding:14px 16px 0;overflow:hidden;height:230px;box-shadow:0 0 40px rgba(0,0,0,.9),inset 0 0 60px rgba(100,0,0,.1);font-family:'Cinzel',serif;}}.arena::before{{content:'';position:absolute;bottom:60px;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(201,168,76,.12),rgba(201,168,76,.22),rgba(201,168,76,.12),transparent);}}.arena::after{{content:'';position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(0deg,rgba(10,3,8,.95),transparent);pointer-events:none;z-index:2;}}.hp-row{{display:flex;align-items:center;gap:8px;margin-bottom:5px;z-index:5;position:relative;}}.hp-lbl{{font-size:10px;letter-spacing:.05em;color:#8a7060;min-width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}}.hp-track{{flex:1;height:9px;background:rgba(255,255,255,.07);border-radius:5px;overflow:hidden;box-shadow:inset 0 2px 3px rgba(0,0,0,.6);}}.hp-fill{{height:100%;border-radius:5px;transition:width .5s ease;}}.hero-fill{{background:linear-gradient(90deg,#7b0000,#c0392b 60%,#e74c3c);box-shadow:0 0 6px rgba(192,57,43,.7);}}.enemy-fill{{background:linear-gradient(90deg,#5a0000,#8b0000 60%,#b00000);box-shadow:0 0 6px rgba(139,0,0,.7);}}.hp-val{{font-size:9px;color:#d4b896;min-width:52px;text-align:right;}}.vs{{position:absolute;top:48%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel Decorative',serif;font-size:11px;color:rgba(201,168,76,.2);letter-spacing:.18em;z-index:1;}}.px-sprite{{width:{SCALE}px;height:{SCALE}px;position:relative;image-rendering:pixelated;}}.sprite-wrap{{position:absolute;bottom:60px;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:3;}}.hero-wrap{{left:13%;}}.enemy-wrap{{right:13%;}}.sprite-lbl{{font-family:'Cinzel Decorative',serif;font-size:9px;letter-spacing:.07em;white-space:nowrap;text-shadow:0 0 8px currentColor;}}.hero-wrap .sprite-lbl{{color:#c9a84c;}}.dmg-num{{position:absolute;font-family:'Cinzel Decorative',serif;font-weight:900;font-size:18px;pointer-events:none;z-index:20;animation:dmg-float 1s ease forwards;text-shadow:0 0 8px currentColor;}}@keyframes dmg-float{{0%{{opacity:1;transform:translateY(0) scale(1.2);}}40%{{opacity:1;transform:translateY(-22px) scale(1);}}80%{{opacity:.6;transform:translateY(-36px) scale(.85);}}100%{{opacity:0;transform:translateY(-48px) scale(.7);}}}}.stun-pop{{position:absolute;font-family:'Cinzel Decorative',serif;font-size:11px;color:#ffcc00;text-shadow:0 0 10px rgba(255,200,0,.8);animation:stun-float .8s ease forwards;z-index:20;}}@keyframes stun-float{{0%{{opacity:1;transform:translateY(0) scale(1.1);}}100%{{opacity:0;transform:translateY(-28px) scale(.8);}}}}.anim-hero-attack .sprite-hero{{animation:hero-slash .55s ease forwards;}}@keyframes hero-slash{{0%{{transform:translateX(0) scaleX(1);}}25%{{transform:translateX(6px) scaleX(1.1);}}50%{{transform:translateX(55px) scaleX(1.15);}}70%{{transform:translateX(46px) scaleX(1.05);}}100%{{transform:translateX(0) scaleX(1);}}}}.anim-hero-magic .sprite-hero{{animation:hero-cast .65s ease forwards;}}@keyframes hero-cast{{0%{{transform:translateY(0) scale(1);filter:brightness(1);}}35%{{transform:translateY(-12px) scale(1.15);filter:brightness(2) hue-rotate(200deg);}}65%{{transform:translateY(-7px) scale(1.1);filter:brightness(1.7) hue-rotate(180deg);}}100%{{transform:translateY(0) scale(1);filter:brightness(1);}}}}.anim-hero-fury .sprite-hero{{animation:fury-aura .5s ease forwards;}}@keyframes fury-aura{{0%,100%{{filter:brightness(1);transform:scale(1);}}30%{{filter:brightness(2.5) sepia(1) hue-rotate(-20deg);transform:scale(1.18);}}60%{{filter:brightness(1.8) sepia(.8) hue-rotate(-10deg);transform:scale(1.1);}}}}.anim-hero-hit .sprite-hero{{animation:hero-hurt .45s ease forwards;}}@keyframes hero-hurt{{0%,100%{{transform:translateX(0);filter:brightness(1);}}15%{{transform:translateX(-10px);filter:brightness(3) sepia(1) hue-rotate(-30deg);}}35%{{transform:translateX(7px);}}55%{{transform:translateX(-5px);}}75%{{transform:translateX(3px);}}}}.anim-hero-block .sprite-hero{{animation:hero-block .5s ease forwards;}}@keyframes hero-block{{0%,100%{{transform:translateX(0);filter:brightness(1);}}30%{{transform:translateX(10px);filter:brightness(2) sepia(1) saturate(2);}}60%{{transform:translateX(5px);filter:brightness(1.4);}}}}.anim-hero-dodge .sprite-hero{{animation:hero-dodge .5s ease forwards;}}@keyframes hero-dodge{{0%{{transform:translate(0,0) rotate(0deg);}}30%{{transform:translate(-20px,-16px) rotate(-10deg);}}60%{{transform:translate(-13px,-8px) rotate(-5deg);}}100%{{transform:translate(0,0) rotate(0deg);}}}}.anim-hero-death .sprite-hero{{animation:hero-die 1.1s ease forwards;}}@keyframes hero-die{{0%{{transform:translate(0,0) rotate(0deg) scale(1);opacity:1;filter:brightness(1);}}20%{{transform:translate(0,-12px) rotate(-8deg) scale(1.06);filter:brightness(3) sepia(1) hue-rotate(-30deg);}}55%{{transform:translate(2px,5px) rotate(-25deg) scale(.9);opacity:.8;}}80%{{transform:translate(4px,15px) rotate(-55deg) scale(.65);opacity:.35;}}100%{{transform:translate(4px,22px) rotate(-90deg) scale(.25);opacity:0;}}}}.anim-enemy-hit .sprite-enemy{{animation:enemy-hurt .45s ease forwards;}}@keyframes enemy-hurt{{0%,100%{{transform:scaleX(-1);filter:brightness(1);}}15%{{transform:scaleX(-1) translateX(-8px);filter:brightness(3) sepia(1) hue-rotate(-30deg);}}35%{{transform:scaleX(-1) translateX(5px);}}55%{{transform:scaleX(-1) translateX(-4px);}}75%{{transform:scaleX(-1) translateX(2px);}}}}.anim-enemy-stun .sprite-enemy{{animation:enemy-stun .65s ease forwards;}}@keyframes enemy-stun{{0%,100%{{transform:scaleX(-1) rotate(0deg);}}20%{{transform:scaleX(-1) rotate(12deg) translateY(-5px);}}40%{{transform:scaleX(-1) rotate(-10deg) translateY(2px);}}60%{{transform:scaleX(-1) rotate(7deg);}}80%{{transform:scaleX(-1) rotate(-4deg);}}}}.anim-enemy-death .sprite-enemy{{animation:enemy-die .9s ease forwards;}}@keyframes enemy-die{{0%{{transform:scaleX(-1) scale(1) translateY(0);opacity:1;filter:brightness(1);}}20%{{transform:scaleX(-1) scale(1.18) translateY(-10px);filter:brightness(4) sepia(1) hue-rotate(-10deg);opacity:1;}}55%{{transform:scaleX(-1) scale(.8) translateY(5px) rotate(18deg);opacity:.7;}}80%{{transform:scaleX(-1) scale(.35) translateY(20px) rotate(45deg);opacity:.2;}}100%{{transform:scaleX(-1) scale(0) translateY(26px) rotate(65deg);opacity:0;}}}}.flash{{position:absolute;inset:0;border-radius:14px;pointer-events:none;z-index:10;}}.anim-hero-attack .flash,.anim-hero-fury .flash{{animation:fl-red .55s ease forwards;}}.anim-hero-magic .flash{{animation:fl-blue .65s ease forwards;}}.anim-hero-hit .flash,.anim-hero-death .flash{{animation:fl-dmg .5s ease forwards;}}.anim-enemy-death .flash{{animation:fl-gold .9s ease forwards;}}@keyframes fl-red{{0%,100%{{background:transparent;}}40%{{background:rgba(192,57,43,.15);}}}}@keyframes fl-blue{{0%,100%{{background:transparent;}}40%{{background:rgba(0,229,255,.18);}}}}@keyframes fl-dmg{{0%,100%{{background:transparent;}}30%{{background:rgba(220,20,20,.2);}}}}@keyframes fl-gold{{0%,100%{{background:transparent;}}30%{{background:rgba(255,60,60,.2);}}50%{{background:rgba(201,168,76,.14);}}}}.magic-bolt{{display:none;position:absolute;bottom:78px;left:28%;width:8px;height:8px;border-radius:50%;background:#00e5ff;box-shadow:0 0 12px 4px rgba(0,229,255,.8);z-index:5;}}.anim-hero-magic .magic-bolt{{display:block;animation:bolt .55s ease forwards;}}@keyframes bolt{{0%{{transform:translateX(0) scale(.5);opacity:1;}}60%{{transform:translateX(150px) scale(1.4);opacity:1;}}100%{{transform:translateX(220px) scale(.2);opacity:0;}}}}</style></head><body><div class="arena {anim_cls}"><div class="hp-row"><span class="hp-lbl">{ss.hero_class}</span><div class="hp-track"><div class="hp-fill hero-fill" style="width:{hhp:.1f}%"></div></div><span class="hp-val">{ss.hp}/{ss.max_hp}</span></div>{enemy_block}<div class="vs">VS</div><div class="sprite-wrap hero-wrap"><div class="px-sprite sprite-hero" style="box-shadow:{hero_shadow}"></div><div class="sprite-lbl" style="color:#c9a84c">{ss.hero_class}</div></div><div class="magic-bolt"></div><div class="flash"></div>{dmg_html}{stun_html}</div></body></html>"""
     components.html(html, height=240, scrolling=False)
-
-    ss.arena_anim      = ANIM_NONE
-    ss.arena_dmg_hero  = None
+    ss.arena_anim = ANIM_NONE
+    ss.arena_dmg_hero = None
     ss.arena_dmg_enemy = None
-    ss.arena_dmg_kind  = ""
-    if not enemy:
-        ss['dying_enemy'] = None
-
+    ss.arena_dmg_kind = ""
+    if not enemy: ss['dying_enemy'] = None
 
 # ============================================================
-# ████████  RENDER MENU  ████████
+# ████████ RENDER MENU ████████
 # ============================================================
 def render_menu():
     st.markdown("<div class='castle-title'>Dark Castle</div>", unsafe_allow_html=True)
@@ -1047,55 +853,31 @@ def render_menu():
   Cinco andares. Cinco horrores. No topo, o trono do Rei Eterno aguarda
   aquele que sobreviver. Nenhum sobreviveu. Ainda.
 </div>""", unsafe_allow_html=True)
-
     st.markdown("<div class='section-hdr'>Escolha sua linhagem</div>", unsafe_allow_html=True)
-
     cols = st.columns(2)
     for idx, (name, data) in enumerate(CLASSES.items()):
         with cols[idx % 2]:
             bars_html = build_stat_bars(data["stats"])
-            # Single st.markdown call — no nested columns, no Streamlit parsing issues
-            st.markdown(
-                f'<div class="class-card">'
-                f'<span class="class-icon">{data["icon"]}</span>'
-                f'<div class="class-name">{name}</div>'
-                f'<div class="class-desc">{data["desc"]}</div>'
-                f'{bars_html}'
-                f'</div>',
-                unsafe_allow_html=True
-            )
-            if st.button(f"{data['icon']} Jogar como {name}", key=f"start_{name}"):
-                start_game(name)
-
+            st.markdown(f'<div class="class-card"><span class="class-icon">{data["icon"]}</span><div class="class-name">{name}</div><div class="class-desc">{data["desc"]}</div>{bars_html}</div>', unsafe_allow_html=True)
+            if st.button(f"{data['icon']} Jogar como {name}", key=f"start_{name}"): start_game(name)
 
 # ============================================================
-# ████████  RENDER HERO PANEL  ████████
+# ████████ RENDER HERO PANEL ████████
 # ============================================================
 def render_hero_panel():
-    ss     = st.session_state
-    hp_pct = ss.hp / ss.max_hp
-    mp_pct = ss.mana / ss.max_mana
+    ss = st.session_state
+    hp_pct, mp_pct = ss.hp / ss.max_hp, ss.mana / ss.max_mana
     is_fury = ss.hero_class == "Berserker" and hp_pct < 0.2
-    w_col  = rarity_color(ss.weapon.get('rarity', 'comum'))
-    a_col  = rarity_color(ss.armor.get('rarity', 'comum'))
-    fury   = '<span class="fury-badge">⚡ FÚRIA</span>' if is_fury else ""
-
+    w_col, a_col = rarity_color(ss.weapon.get('rarity', 'comum')), rarity_color(ss.armor.get('rarity', 'comum'))
+    fury = '<span class="fury-badge">⚡ FÚRIA</span>' if is_fury else ""
     st.markdown(f"""
 <div class="hero-3d">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
     <span class="hero-name">{CLASSES[ss.hero_class]['icon']} {ss.hero_class.upper()} {fury}</span>
     <span class="hero-gold">💰 {ss.gold}G</span>
   </div>
-  <div class="stat-row">
-    <span class="stat-label">❤️ VIDA</span>
-    {render_bar(hp_pct,'hp')}
-    <span class="stat-val">{ss.hp}/{ss.max_hp}</span>
-  </div>
-  <div class="stat-row">
-    <span class="stat-label">🔮 MANA</span>
-    {render_bar(mp_pct,'mp')}
-    <span class="stat-val">{ss.mana}/{ss.max_mana}</span>
-  </div>
+  <div class="stat-row"><span class="stat-label">❤️ VIDA</span>{render_bar(hp_pct,'hp')}<span class="stat-val">{ss.hp}/{ss.max_hp}</span></div>
+  <div class="stat-row"><span class="stat-label">🔮 MANA</span>{render_bar(mp_pct,'mp')}<span class="stat-val">{ss.mana}/{ss.max_mana}</span></div>
   <div class="equip-row">
     <span>⚔️ <span class="equip-val" style="color:{w_col}">{ss.weapon['name']} +{ss.weapon['atk']}</span></span>
     <span>🛡️ <span class="equip-val" style="color:{a_col}">{ss.armor['name']} +{ss.armor['def']}</span></span>
@@ -1103,274 +885,132 @@ def render_hero_panel():
   </div>
 </div>""", unsafe_allow_html=True)
 
-
 # ============================================================
-# ████████  RENDER COMBAT TAB  ████████
+# ████████ RENDER COMBAT TAB ████████
 # ============================================================
 def render_combat():
     ss = st.session_state
-
     lore = LORE_PER_FLOOR.get(ss.floor, "")
-    if lore:
-        st.markdown(f"""<div style="font-style:italic;font-size:.72rem;color:#5a4030;
-          border-left:2px solid rgba(201,168,76,.2);padding-left:10px;margin-bottom:14px">
-          {lore}</div>""", unsafe_allow_html=True)
-
+    if lore: st.markdown(f"""<div style="font-style:italic;font-size:.72rem;color:#5a4030;border-left:2px solid rgba(201,168,76,.2);padding-left:10px;margin-bottom:14px">{lore}</div>""", unsafe_allow_html=True)
     prog = ss.kills / ss.kills_needed
     st.markdown(f"""
 <div style="margin-bottom:12px">
-  <div style="font-size:.68rem;color:#5a4030;letter-spacing:.1em;margin-bottom:4px">
-    PROGRESSO DO ANDAR — {ss.kills}/{ss.kills_needed} abates
-  </div>
+  <div style="font-size:.68rem;color:#5a4030;letter-spacing:.1em;margin-bottom:4px">PROGRESSO DO ANDAR — {ss.kills}/{ss.kills_needed} abates</div>
   <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-    <div style="width:{prog*100:.0f}%;height:100%;
-      background:linear-gradient(90deg,#3a7a3a,#00ff88);
-      box-shadow:0 0 8px rgba(0,255,136,.5);border-radius:3px;transition:width .4s"></div>
+    <div style="width:{prog*100:.0f}%;height:100%;background:linear-gradient(90deg,#3a7a3a,#00ff88);box-shadow:0 0 8px rgba(0,255,136,.5);border-radius:3px;transition:width .4s"></div>
   </div>
 </div>""", unsafe_allow_html=True)
-
     if ss.enemy:
         en = ss.enemy
         render_arena(en)
-
         stun_tag = '<span class="stun-tag">⭐ ATORDOADO</span>' if en.get('stunned') else ""
-        st.markdown(f"""<div class="enemy-stats-bar">
-<span>{en['name']}</span>
-<span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span>
-<span>⚔️ {en['atk']} ATK</span>
-{stun_tag}
-</div>""", unsafe_allow_html=True)
-
+        st.markdown(f"""<div class="enemy-stats-bar"><span>{en['name']}</span><span>❤️ {max(0,en['hp'])}/{en['max_hp']}</span><span>⚔️ {en['atk']} ATK</span>{stun_tag}</div>""", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("⚔️ ATACAR", key="btn_attack"):
-                player_attack(magic=False)
-
+            if st.button("⚔️ ATACAR", key="btn_attack"): player_attack(magic=False)
         if ss.hero_class == "Mago":
             with c2:
-                if st.button("🔥 MAGIA  (15 Mana)", key="btn_magic"):
-                    player_attack(magic=True)
+                if st.button("🔥 MAGIA (15 Mana)", key="btn_magic"): player_attack(magic=True)
         else:
-            skill_map = {
-                "Guerreiro": "🛡️ BLOQUEIO  passivo 20%",
-                "Berserker": "🔥 FÚRIA  passivo < 20% HP",
-                "Assassino": "💨 ESQUIVA  passivo 30%",
-            }
-            with c2:
-                st.markdown(f"""<div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.1);
-border-radius:8px;padding:10px;text-align:center;font-size:.65rem;color:#5a4030">
-{skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
+            skill_map = {"Guerreiro": "🛡️ BLOQUEIO passivo 20%", "Berserker": "🔥 FÚRIA passivo < 20% HP", "Assassino": "💨 ESQUIVA passivo 30%"}
+            with c2: st.markdown(f"""<div style="background:rgba(255,255,255,.03);border:1px solid rgba(201,168,76,.1);border-radius:8px;padding:10px;text-align:center;font-size:.65rem;color:#5a4030">{skill_map.get(ss.hero_class,'')}</div>""", unsafe_allow_html=True)
     else:
         render_arena(None)
         if st.button("👣 EXPLORAR A SALA", key="btn_explore"):
             if random.random() < 0.50:
                 gain = 35 + ss.floor * 12 + random.randint(0, 18)
-                ss.gold += gain; ss.gold_earned += gain
-                log(f"🎁 Baú encontrado! +{gain}G", "loot")
+                ss.gold += gain; ss.gold_earned += gain; log(f"🎁 Baú encontrado! +{gain}G", "loot"); play_sfx("loot")
                 if random.random() < 0.15:
-                    item = random.choice(generate_market())
-                    item["price"] = 0
-                    ss.inventory.append(item)
-                    log(f"✨ Item no baú: {item['name']}!", "loot")
+                    item = random.choice(generate_market()); item["price"] = 0; ss.inventory.append(item); log(f"✨ Item no baú: {item['name']}!", "loot")
             else:
-                ss.enemy = spawn_enemy(ss.floor)
-                log(f"⚠️ {ss.enemy['name']} aparece das sombras!", "crit")
+                ss.enemy = spawn_enemy(ss.floor); log(f"⚠️ {ss.enemy['name']} aparece das sombras!", "crit"); play_sfx("start")
             st.rerun()
 
-
 # ============================================================
-# ████████  RENDER INVENTORY TAB  ████████
+# ████████ RENDER INVENTORY TAB ████████
 # ============================================================
 def render_inventory():
     ss = st.session_state
     st.markdown("<div class='section-hdr'>Itens Equipados</div>", unsafe_allow_html=True)
-    w_col = rarity_color(ss.weapon.get('rarity','comum'))
-    a_col = rarity_color(ss.armor.get('rarity','comum'))
-    st.markdown(f"""
-<div class="inv-item">
-  <span style="font-size:1.2rem">⚔️</span>
-  <div><div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div>
-    <div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div></div>
-</div>
-<div class="inv-item">
-  <span style="font-size:1.2rem">🛡️</span>
-  <div><div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div>
-    <div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div></div>
-</div>""", unsafe_allow_html=True)
-
+    w_col, a_col = rarity_color(ss.weapon.get('rarity','comum')), rarity_color(ss.armor.get('rarity','comum'))
+    st.markdown(f"""<div class="inv-item"><span style="font-size:1.2rem">⚔️</span><div><div class="inv-name" style="color:{w_col}">{ss.weapon['name']}</div><div class="inv-attr">+{ss.weapon['atk']} ATK · {ss.weapon.get('rarity','comum').upper()}</div></div></div><div class="inv-item"><span style="font-size:1.2rem">🛡️</span><div><div class="inv-name" style="color:{a_col}">{ss.armor['name']}</div><div class="inv-attr">+{ss.armor['def']} DEF · {ss.armor.get('rarity','comum').upper()}</div></div></div>""", unsafe_allow_html=True)
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Mochila</div>", unsafe_allow_html=True)
     if not ss.inventory:
         st.markdown('<div style="color:#5a4030;font-size:.78rem;padding:10px 0">— Mochila vazia —</div>', unsafe_allow_html=True)
         return
-
     for i, item in enumerate(ss.inventory):
-        r       = item.get('rarity','comum')
-        col     = rarity_color(r)
-        attr    = f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"
-        icon    = "⚔️" if item['type']=='weapon' else "🛡️"
-        rare_c  = "rare" if r in ('raro','lendário') else ""
-        st.markdown(f"""
-<div class="inv-item {rare_c}">
-  <span style="font-size:1.1rem">{icon}</span>
-  <div style="flex:1"><div class="inv-name" style="color:{col}">{item['name']}</div>
-    <div class="inv-attr">{attr} · {r.upper()}</div></div>
-  <div class="inv-val">⚖️ {item.get('value',0)}G</div>
-</div>""", unsafe_allow_html=True)
+        r, col, attr, icon = item.get('rarity','comum'), rarity_color(item.get('rarity','comum')), (f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"), ("⚔️" if item['type']=='weapon' else "🛡️")
+        rare_c = "rare" if r in ('raro','lendário') else ""
+        st.markdown(f"""<div class="inv-item {rare_c}"><span style="font-size:1.1rem">{icon}</span><div style="flex:1"><div class="inv-name" style="color:{col}">{item['name']}</div><div class="inv-attr">{attr} · {r.upper()}</div></div><div class="inv-val">⚖️ {item.get('value',0)}G</div></div>""", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
             if st.button("Equipar", key=f"equip_{i}"):
-                old = ss[item['type']]; ss[item['type']] = item; ss.inventory[i] = old
-                log(f"🔄 Equipou: {item['name']}!", ""); st.rerun()
+                old = ss[item['type']]; ss[item['type']] = item; ss.inventory[i] = old; log(f"🔄 Equipou: {item['name']}!", ""); play_sfx("click"); st.rerun()
         with c2:
             sv = item.get('value', 10)
-            if st.button(f"Vender +{sv}G", key=f"sell_inv_{i}"):
-                ss.gold += sv; ss.inventory.pop(i)
-                log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
-
+            if st.button(f"Vender +{sv}G", key=f"sell_inv_{i}"): ss.gold += sv; ss.inventory.pop(i); log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); play_sfx("loot"); st.rerun()
 
 # ============================================================
-# ████████  RENDER MARKET TAB  ████████
+# ████████ RENDER MARKET TAB ████████
 # ============================================================
 def render_market():
     ss = st.session_state
-    if not ss.market_stock:
-        ss.market_stock = generate_market()
-
+    if not ss.market_stock: ss.market_stock = generate_market()
     st.markdown("<div class='section-hdr'>Poções</div>", unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("❤️ Vida +50 HP\n(40G)", key="pot_hp"):
-            if ss.gold >= 40:
-                ss.gold -= 40; healed = min(ss.max_hp, ss.hp+50)-ss.hp; ss.hp += healed
-                log(f"❤️ Poção de vida: +{healed} HP", "loot"); st.rerun()
+        if st.button("❤️ Vida +50 HP (40G)", key="pot_hp"):
+            if ss.gold >= 40: ss.gold -= 40; healed = min(ss.max_hp, ss.hp+50)-ss.hp; ss.hp += healed; log(f"❤️ Poção de vida: +{healed} HP", "loot"); play_sfx("loot"); st.rerun()
             else: st.warning("Ouro insuficiente!")
     with c2:
-        if st.button("🔮 Mana +40\n(40G)", key="pot_mp"):
-            if ss.gold >= 40:
-                ss.gold -= 40; restored = min(ss.max_mana, ss.mana+40)-ss.mana; ss.mana += restored
-                log(f"🔮 Poção de mana: +{restored} Mana", "magic"); st.rerun()
+        if st.button("🔮 Mana +40 (40G)", key="pot_mp"):
+            if ss.gold >= 40: ss.gold -= 40; restored = min(ss.max_mana, ss.mana+40)-ss.mana; ss.mana += restored; log(f"🔮 Poção de mana: +{restored} Mana", "magic"); play_sfx("loot"); st.rerun()
             else: st.warning("Ouro insuficiente!")
-
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Equipamentos</div>", unsafe_allow_html=True)
     for i, item in enumerate(ss.market_stock):
-        r       = item.get('rarity','comum')
-        col     = rarity_color(r)
-        attr    = f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"
-        icon    = "⚔️" if item['type']=='weapon' else "🛡️"
-        rare_c  = "rare" if r in ('raro','lendário') else ""
-        badge   = (f'<span style="background:{col};color:#000;font-size:.6rem;'
-                   f'padding:1px 6px;border-radius:8px;font-weight:700">{r.upper()}</span>'
-                   if r != "comum" else "")
-        st.markdown(f"""
-<div class="mkt-item {rare_c}">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start">
-    <div class="mkt-name" style="color:{col}">{icon} {item['name']} {badge}</div>
-    <div class="price-tag">💰 {item['price']}G</div>
-  </div>
-  <div class="mkt-sub">{attr}</div>
-</div>""", unsafe_allow_html=True)
+        r, col, attr, icon = item.get('rarity','comum'), rarity_color(item.get('rarity','comum')), (f"+{item['atk']} ATK" if item['type']=='weapon' else f"+{item['def']} DEF"), ("⚔️" if item['type']=='weapon' else "🛡️")
+        rare_c, badge = ("rare" if r in ('raro','lendário') else ""), ((f'<span style="background:{col};color:#000;font-size:.6rem;padding:1px 6px;border-radius:8px;font-weight:700">{r.upper()}</span>') if r != "comum" else "")
+        st.markdown(f"""<div class="mkt-item {rare_c}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div class="mkt-name" style="color:{col}">{icon} {item['name']} {badge}</div><div class="price-tag">💰 {item['price']}G</div></div><div class="mkt-sub">{attr}</div></div>""", unsafe_allow_html=True)
         if st.button(f"Comprar {item['name']}", key=f"buy_{i}"):
-            if ss.gold >= item['price']:
-                ss.gold -= item['price']; ss.inventory.append(dict(item)); ss.market_stock.pop(i)
-                log(f"🛒 Comprou: {item['name']}!", "loot")
-                if not ss.market_stock: ss.market_stock = generate_market()
-                st.rerun()
+            if ss.gold >= item['price']: ss.gold -= item['price']; ss.inventory.append(dict(item)); ss.market_stock.pop(i); log(f"🛒 Comprou: {item['name']}!", "loot"); play_sfx("loot"); if not ss.market_stock: ss.market_stock = generate_market(); st.rerun()
             else: st.warning("Ouro insuficiente!")
-
     st.markdown("<div class='section-hdr' style='margin-top:14px'>Vender Inventário</div>", unsafe_allow_html=True)
-    if not ss.inventory:
-        st.markdown('<div style="color:#5a4030;font-size:.78rem">— Nada para vender —</div>', unsafe_allow_html=True)
+    if not ss.inventory: st.markdown('<div style="color:#5a4030;font-size:.78rem">— Nada para vender —</div>', unsafe_allow_html=True)
     else:
         for i, item in enumerate(ss.inventory):
             sv = item.get('value', 10)
-            if st.button(f"Vender {item['name']} (+{sv}G)", key=f"sell_mkt_{i}"):
-                ss.gold += sv; ss.inventory.pop(i)
-                log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); st.rerun()
-
+            if st.button(f"Vender {item['name']} (+{sv}G)", key=f"sell_mkt_{i}"): ss.gold += sv; ss.inventory.pop(i); log(f"💰 Vendeu {item['name']} por {sv}G", "loot"); play_sfx("loot"); st.rerun()
 
 # ============================================================
-# ████████  RENDER LOG  ████████
-# ============================================================
-def render_log():
-    lines = st.session_state.log[:6]
-    items = "".join(
-        f'<div class="log-line {e.get("kind","")}">[{e["t"]}] {e["msg"]}</div>'
-        for e in lines
-    )
-    st.markdown(f'<div class="log-wrap">{items}</div>', unsafe_allow_html=True)
-
-
-# ============================================================
-# ████████  MAIN GAME SCREEN  ████████
+# ████████ MAIN SCREENS ████████
 # ============================================================
 def render_game():
     ss = st.session_state
-    st.markdown(f'<div class="floor-wrapper"><span class="floor-3d">⚔️ ANDAR {ss.floor} ⚔️</span></div>',
-                unsafe_allow_html=True)
+    st.markdown(f'<div class="floor-wrapper"><span class="floor-3d">⚔️ ANDAR {ss.floor} ⚔️</span></div>', unsafe_allow_html=True)
     render_hero_panel()
-    tab_c, tab_i, tab_m = st.tabs(["⚔️  COMBATE", "🎒  MOCHILA", "🛒  MERCADO"])
+    tab_c, tab_i, tab_m = st.tabs(["⚔️ COMBATE", "🎒 MOCHILA", "🛒 MERCADO"])
     with tab_c: render_combat()
     with tab_i: render_inventory()
     with tab_m: render_market()
-    render_log()
+    lines = ss.log[:6]; items = "".join(f'<div class="log-line {e.get("kind","")}">[{e["t"]}] {e["msg"]}</div>' for e in lines)
+    st.markdown(f'<div class="log-wrap">{items}</div>', unsafe_allow_html=True)
 
-
-# ============================================================
-# ████████  GAME OVER  ████████
-# ============================================================
 def render_gameover():
-    ss = st.session_state
-    # Show death arena with hero dying animation
-    ss.arena_anim = ANIM_HERO_DEATH
-    render_arena(None)
+    ss = st.session_state; ss.arena_anim = ANIM_HERO_DEATH; render_arena(None); play_sfx("death")
+    st.markdown(f"""<div class="gameover-wrap"><div class="gameover-title">Game Over</div><div style="font-family:'Cinzel',serif;color:#7a4040;font-size:.82rem;margin:8px 0 20px">O castelo devorou mais uma alma.</div><div class="gameover-stats"><div>🏰 Andar alcançado: <b style="color:var(--gold)">{ss.floor}</b></div><div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div><div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div><div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div></div></div>""", unsafe_allow_html=True)
+    if st.button("🔄 RECOMEÇAR A JORNADA"): reset_state(); st.rerun()
 
-    st.markdown(f"""
-<div class="gameover-wrap">
-  <div class="gameover-title">Game Over</div>
-  <div style="font-family:'Cinzel',serif;color:#7a4040;font-size:.82rem;margin:8px 0 20px">
-    O castelo devorou mais uma alma.
-  </div>
-  <div class="gameover-stats">
-    <div>🏰 Andar alcançado: <b style="color:var(--gold)">{ss.floor}</b></div>
-    <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
-    <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
-    <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
-  </div>
-</div>""", unsafe_allow_html=True)
-
-    if st.button("🔄 RECOMEÇAR A JORNADA"):
-        reset_state(); st.rerun()
-
-
-# ============================================================
-# ████████  VICTORY  ████████
-# ============================================================
 def render_victory():
-    ss = st.session_state
-    st.markdown(f"""
-<div class="gameover-wrap">
-  <div style="font-family:'UnifrakturMaguntia',cursive;font-size:3.6rem;
-    color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">Vitória!</div>
-  <div style="font-family:'Cinzel',serif;color:#8a7040;font-size:.82rem;margin:8px 0 20px">
-    O trono do Rei Eterno é seu. O castelo inclina sua coroa.
-  </div>
-  <div class="gameover-stats">
-    <div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div>
-    <div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div>
-    <div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div>
-  </div>
-</div>""", unsafe_allow_html=True)
-
-    if st.button("🏆 JOGAR NOVAMENTE"):
-        reset_state(); st.rerun()
-
+    ss = st.session_state; play_sfx("victory")
+    st.markdown(f"""<div class="gameover-wrap"><div style="font-family:'UnifrakturMaguntia',cursive;font-size:3.6rem;color:#c9a84c;text-shadow:0 0 30px rgba(201,168,76,.8)">Vitória!</div><div style="font-family:'Cinzel',serif;color:#8a7040;font-size:.82rem;margin:8px 0 20px">O trono do Rei Eterno é seu. O castelo inclina sua coroa.</div><div class="gameover-stats"><div>⚔️ Inimigos abatidos: <b style="color:var(--gold)">{ss.total_kills}</b></div><div>💰 Ouro acumulado: <b style="color:var(--gold)">{ss.gold_earned}G</b></div><div>🧙 Classe: <b style="color:var(--gold)">{ss.hero_class}</b></div></div></div>""", unsafe_allow_html=True)
+    if st.button("🏆 JOGAR NOVAMENTE"): reset_state(); st.rerun()
 
 # ============================================================
-# ████████  ROUTER  ████████
+# ████████ ROUTER ████████
 # ============================================================
+render_audio()
 state = st.session_state.state
-
-if   state == 'menu':        render_menu()
-elif state == 'playing':     render_game()
+if state == 'menu': render_menu()
+elif state == 'playing': render_game()
 elif state == 'player_dead': render_gameover()
-elif state == 'victory':     render_victory()
+elif state == 'victory': render_victory()
